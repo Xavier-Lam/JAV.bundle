@@ -40,8 +40,8 @@ class CaribbeanBase(Base):
         match = re.match(r"(\d{2})(\d{2})(\d{2})-(\d+)$", movie_id)
         return "{0} {1}".format(
             self.get_studio(media, data, lang),
-            "{0}{1}{2}-{3}".format(match.group(3), match.group(2),
-                                   match.group(1), match.group(4))
+            "{0}{1}{2}-{3}".format(match.group(3), match.group(1),
+                                   match.group(2), match.group(4))
         )
 
     def get_studio(self, media, data, lang):
