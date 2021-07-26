@@ -52,9 +52,10 @@ class JAVAgent(Agent.Movies):
 
     @cached_property
     def agents(self):
-        from agents import Caribbean, CaribbeanLocal, Heyzo
+        from agents import Caribbean, CaribbeanLocal, Heyzo, Pondo
         return [
             Caribbean(),
             Heyzo(),
+            Pondo(),
             CaribbeanLocal()
         ]

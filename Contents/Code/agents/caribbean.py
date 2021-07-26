@@ -4,6 +4,8 @@ import datetime
 import os
 import re
 
+from requests import status_codes
+
 from bs4 import BeautifulSoup
 import requests
 
@@ -24,7 +26,7 @@ class CaribbeanBase(Base):
         }]
 
     def get_id(self, media):
-        filename = media.items[0].parts[0].file
+        filename = media.items[0].parts[0].file.lower()
         if "カリビ" in filename or "carib" in filename:
             name = self.get_filename(media)
             dirname = self.get_dirname(media)
@@ -104,12 +106,19 @@ class Caribbean(CaribbeanBase):
         ele = data.find("p", {"itemprop": "description"})
         if ele:
             return ele.text.strip()
-        
-    def get_posters(self, media, data, lang):
+
+    def get_thumbs(self, media, data, lang):
         movie_id = self.get_id(media)
         return [
             "https://www.caribbeancom.com/moviepages/{0}/images/l_l.jpg".format(movie_id)
         ]
+        
+    def get_posters(self, media, data, lang):
+        movie_id = self.get_id(media)
+        urls = self.get_thumbs(media, data, lang) + [
+            "https://www.caribbeancom.com/moviepages/{0}/images/jacket.jpg".format(movie_id)
+        ]
+        return [url for url in urls if requests.head(url).status_code != 404]
 
     def find_ele(self, data, title):
         for li in data.findAll("li", "movie-spec"):
