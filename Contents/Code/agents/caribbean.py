@@ -47,6 +47,9 @@ class CaribbeanBase(Base):
     def get_studio(self, media, data, lang):
         return "カリビアンコム"
 
+    def get_collections(self, media, data, lang):
+        return [self.get_studio(media, data, lang)]
+
 
 class Caribbean(CaribbeanBase):
     name = "Caribbean"
@@ -55,6 +58,7 @@ class Caribbean(CaribbeanBase):
         movie_id = self.get_id(media)
         url = "https://www.caribbeancom.com/moviepages/{0}/index.html".format(movie_id)
         resp = requests.get(url)
+        resp.raise_for_status()
         html = resp.content.decode("euc-jp", errors="ignore")
         return BeautifulSoup(html, "html.parser")
 

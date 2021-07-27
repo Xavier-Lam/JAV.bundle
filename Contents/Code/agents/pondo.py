@@ -27,7 +27,7 @@ class Pondo(Base):
 
     def get_id(self, media):
         filename = media.items[0].parts[0].file.lower()
-        if "一本道" in filename or "1pondo" in filename:
+        if "一本道" in filename or "1pon" in filename:
             name = self.get_filename(media)
             dirname = self.get_dirname(media)
             match = re.search(r"(\d{6})[-_](\d{3})",
@@ -51,6 +51,7 @@ class Pondo(Base):
         movie_id = self.get_id(media)
         url = "https://www.1pondo.tv/dyn/phpauto/movie_details/movie_id/{0}.json".format(movie_id)
         resp = requests.get(url)
+        resp.raise_for_status()
         return resp.json()
 
     def get_original_title(self, media, data, lang):
@@ -91,6 +92,7 @@ class Pondo(Base):
         return [poster] if poster else self.get_thumbs(self, media, data, lang)
 
     def get_collections(self, media, data, lang):
+        rv = [self.get_studio(media, data, lang)]
         if data["Series"]:
-            return [data["Series"]]
-        return []
+            rv.append(data["Series"])
+        return rv

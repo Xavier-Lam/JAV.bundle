@@ -47,6 +47,7 @@ class Heyzo(Base):
         movie_id = self.get_id(media)
         url = "https://www.heyzo.com/moviepages/{0}/index.html".format(movie_id)
         resp = requests.get(url)
+        resp.raise_for_status()
         html = resp.content.decode("utf-8")
         return BeautifulSoup(html, "html.parser")
 
@@ -73,10 +74,11 @@ class Heyzo(Base):
         return []
 
     def get_collections(self, media, data, lang):
+        rv = [self.get_studio(media, data, lang)]
         ele = self.find_ele(data, "table-series")
         if ele and ele.find("a"):
-            return [ele.find("a").text.strip()]
-        return []
+            rv.append(ele.find("a").text.strip())
+        return rv
 
     def get_genres(self, media, data, lang):
         ele = data.find("ul", "tag-keyword-list")

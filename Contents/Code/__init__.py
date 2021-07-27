@@ -29,7 +29,7 @@ class JAVAgent(Agent.Movies):
                 Log(str(len(search_results)) + " results has been found.")
                 if search_results:
                     for result in search_results:
-                        results.Append(result)
+                        results.Append(MetadataSearchResult(**result))
                         return
 
     def update(self, metadata, media, lang):
