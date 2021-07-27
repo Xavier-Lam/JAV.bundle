@@ -22,7 +22,8 @@ class Pondo(Base):
             "name": self.get_title(media, data, lang),
             "year": originally_available_at and originally_available_at.year,
             "lang": lang,
-            "score": 100
+            "score": 100,
+            "thumb": self.get_thumbs(media, None, lang)[0]
         }]
 
     def get_id(self, media):

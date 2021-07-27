@@ -17,12 +17,14 @@ class CaribbeanBase(Base):
         movie_id = self.get_id(media)
         data = self.crawl(media, lang)
         originally_available_at = self.get_originally_available_at(media, data, lang)
+        thumbs = self.get_thumbs(media, None, lang)
         return [{
             "id": movie_id,
             "name": self.get_title(media, data, lang),
             "year": originally_available_at and originally_available_at.year,
             "lang": lang,
-            "score": 100
+            "score": 100,
+            "thumb": thumbs and thumbs[0]
         }]
 
     def get_id(self, media):
@@ -128,6 +130,13 @@ class Caribbean(CaribbeanBase):
         for li in data.findAll("li", "movie-spec"):
             if li.find("span", "spec-title").text.strip() == title:
                 return li.find("span", "spec-content")
+
+    def get_collections(self, media, data, lang):
+        rv = super(Caribbean, self).get_collections(media, data, lang)
+        ele = self.find_ele(data, "シリーズ")
+        if ele:
+            rv.append(ele.find("a").text.strip())
+        return rv
 
 
 class CaribbeanLocal(CaribbeanBase):
