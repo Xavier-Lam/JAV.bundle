@@ -90,7 +90,7 @@ class Caribbean(CaribbeanBase):
         ele = self.find_ele(data, "出演")
         if ele:
             return [
-                item.find("span", {"itemprop": "name"}).text.strip()
+                item.find("span", {"itemprop": "name"}).text.strip("()")
                 for item in ele.findAll("a", {"itemprop": "actor"})
             ]
         return []

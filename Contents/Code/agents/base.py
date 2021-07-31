@@ -65,7 +65,7 @@ class Base(object):
     def is_match(self, media):
         return bool(self.get_id(media))
 
-    def get_id(self, media):
+    def get_id(self, media, data=None, lang=None):
         pass
 
     def get_results(self, media, lang):

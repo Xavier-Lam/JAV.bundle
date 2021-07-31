@@ -63,7 +63,10 @@ class Heyzo(Base):
         ele = self.find_ele(data, "table-release-day")
         if ele:
             dt_str = ele.text.strip()
-            return datetime.datetime.strptime(dt_str, "%Y-%m-%d")
+            try:
+                return datetime.datetime.strptime(dt_str, "%Y-%m-%d")
+            except ValueError:
+                pass
 
     def get_roles(self, media, data, lang):
         ele = self.find_ele(data, "table-actor")

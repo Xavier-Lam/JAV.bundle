@@ -30,7 +30,6 @@ class JAVAgent(Agent.Movies):
                 if search_results:
                     for result in search_results:
                         results.Append(MetadataSearchResult(**result))
-                        return
 
     def update(self, metadata, media, lang):
         for agent in self.agents:
@@ -39,6 +38,7 @@ class JAVAgent(Agent.Movies):
                 Log("Start update metadata by using agent {0}, movie id is {1}".format(
                     agent.name, movie_id))
                 try:
+                    media.metadata_id = metadata.id
                     agent.update(metadata, media, lang)
                     Log("Update metadata successfully")
 
@@ -52,10 +52,11 @@ class JAVAgent(Agent.Movies):
 
     @cached_property
     def agents(self):
-        from agents import Caribbean, CaribbeanLocal, Heyzo, Pondo
+        from agents import AVE, Caribbean, CaribbeanLocal, Heyzo, Pondo
         return [
             Caribbean(),
             Heyzo(),
             Pondo(),
-            CaribbeanLocal()
+            AVE(),
+            # CaribbeanLocal()
         ]
