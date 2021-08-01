@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from cached_property import cached_property
-
 
 def Start():
     pass
@@ -18,28 +16,29 @@ class JAVAgent(Agent.Movies):
     contributes_to = [
         'com.plexapp.agents.none'
     ]
+    agents = {}
 
     def search(self, results, media, lang):
-        for agent in self.agents:
+        for agent in self.get_agents(lang):
             if agent.is_match(media):
                 movie_id = agent.get_id(media)
                 Log("Pattern matched by agent {0}, movie id is {1}".format(
                     agent.name, movie_id))
-                search_results = agent.get_results(media, lang)
+                search_results = agent.get_results(media)
                 Log(str(len(search_results)) + " results has been found.")
                 if search_results:
                     for result in search_results:
                         results.Append(MetadataSearchResult(**result))
 
     def update(self, metadata, media, lang):
-        for agent in self.agents:
+        media.metadata_id = metadata.id
+        for agent in self.get_agents(lang):
             if agent.is_match(media):
                 movie_id = agent.get_id(media)
                 Log("Start update metadata by using agent {0}, movie id is {1}".format(
                     agent.name, movie_id))
                 try:
-                    media.metadata_id = metadata.id
-                    agent.update(metadata, media, lang)
+                    agent.update(metadata, media)
                     Log("Update metadata successfully")
 
                     from gfriends import gfriends
@@ -50,13 +49,17 @@ class JAVAgent(Agent.Movies):
                     raise
                     Log("An error occured when loading data: " + str(e))
 
-    @cached_property
-    def agents(self):
-        from agents import AVE, Caribbean, CaribbeanLocal, Heyzo, Pondo
-        return [
-            Caribbean(),
-            Heyzo(),
-            Pondo(),
-            AVE(),
-            # CaribbeanLocal()
-        ]
+    def get_agents(self, lang):
+        from agents import (AVE, Caribbean, CaribbeanLocal, Heyzo, JAVLibrary,
+                            Pondo, TokyoHot)
+        if lang not in self.agents:
+            self.agents[lang] = [
+                Caribbean(lang),
+                Heyzo(lang),
+                Pondo(lang),
+                TokyoHot(lang),
+                # JAVLibrary(lang),
+                AVE(lang),
+                # CaribbeanLocal()
+            ]
+        return self.agents[lang]
