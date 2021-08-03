@@ -50,16 +50,14 @@ class JAVAgent(Agent.Movies):
                     Log("An error occured when loading data: " + str(e))
 
     def get_agents(self, lang):
-        from agents import (AVE, Caribbean, CaribbeanLocal, Heyzo, JAVLibrary,
-                            Pondo, TokyoHot)
+        from agents import AVE, Caribbean, Heyzo, JAVLibrary, Pondo, TokyoHot
         if lang not in self.agents:
             self.agents[lang] = [
                 Caribbean(lang),
                 Heyzo(lang),
                 Pondo(lang),
                 TokyoHot(lang),
-                # JAVLibrary(lang),
-                AVE(lang),
-                # CaribbeanLocal()
+                JAVLibrary(lang),
+                AVE(lang)
             ]
         return self.agents[lang]

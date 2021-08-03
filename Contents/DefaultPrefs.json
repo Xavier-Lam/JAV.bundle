@@ -1,2 +1,11 @@
-[
-]
+[{
+    "id": "enableJavLibraryCloudScraper",
+    "label": "Enable Javlibrary CloudScraper",
+    "type": "bool",
+    "default": true
+}, {
+    "id": "userAgent",
+    "label": "User Agent",
+    "type": "text",
+    "default": ""
+}]

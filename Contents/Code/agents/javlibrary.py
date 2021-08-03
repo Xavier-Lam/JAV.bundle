@@ -13,10 +13,6 @@ from .base import Base
 class JAVLibrary(Base):
     name = "JAVLibrary"
 
-    def __init__(self, lang=None):
-        super(JAVLibrary, self).__init__(self, lang)
-        self.scraper = cloudscraper.create_scraper(delay=5)
-
     def get_results(self, media):
         rv = []
         movie_id = self.get_id(media)
@@ -30,7 +26,7 @@ class JAVLibrary(Base):
         params = {
             "keyword": keyword
         }
-        resp = self.scraper.get(url, params=params)
+        resp = self.session.get(url, params=params)
         resp.raise_for_status()
         html = resp.content.decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
@@ -47,8 +43,6 @@ class JAVLibrary(Base):
                         "lang": self.lang
                     })
                     score = score - 1
-            else:
-                return
         else:
             try:
                 movie_id = soup.find("h3", "post-title").find("a")["href"][7:]
@@ -59,8 +53,10 @@ class JAVLibrary(Base):
                 "id": self.name + "." + movie_id,
                 "name": soup.find("div", {"id": "video_title"}).find("a").text.strip(),
                 "year": None,
-                "score": score
+                "score": score,
+                "lang": self.lang
             })
+        return results
 
     def is_match(self, media):
         meta_id = getattr(media, "metadata_id", "")
@@ -81,7 +77,7 @@ class JAVLibrary(Base):
 
     def crawl(self, media):
         url = "https://www.javlibrary.com/ja/"
-        resp = requests.get(url, params={
+        resp = self.session.get(url, params={
             "v": media.metadata_id.split(".")[1]
         })
         resp.raise_for_status()
@@ -103,7 +99,7 @@ class JAVLibrary(Base):
             match = re.search("\d+[-]\d+[-]\d+", dt_str)
             try:
                 if match:
-                    return datetime.datetime.strptime(match.group(0), "%Y/%m/%d")
+                    return datetime.datetime.strptime(match.group(0), "%Y-%m-%d")
             except ValueError:
                 pass
 
@@ -125,7 +121,7 @@ class JAVLibrary(Base):
 
     def get_directors(self, media, data):
         ele = self.find_ele(data, "監督:")
-        if ele:
+        if ele and ele.find("a"):
             return [ele.find("a").text.strip()]
         return []
 
@@ -159,3 +155,21 @@ class JAVLibrary(Base):
         for single_info in single_infos:
             if single_info.find("td", "header").text.strip() == title:
                 return single_info.find("td", "header").findNext("td")
+
+    s_requests = None
+    s_cloudscraper = None
+
+    @property
+    def session(self):
+        rv = None
+        if Prefs["enableJavLibraryCloudScraper"]:
+            if not self.s_cloudscraper:
+                self.s_cloudscraper = cloudscraper.create_scraper(delay=5)
+            rv = self.s_cloudscraper
+        else:
+            if not self.s_requests:
+                self.s_requests = requests.session()
+            rv = self.s_requests
+        if Prefs["userAgent"]:
+            rv.headers["User-Agent"] = Prefs["userAgent"]
+        return rv

@@ -5,17 +5,33 @@
 
 **JAV.bundle** is a [plex](https://plex.tv) agent for Japanese porn videos. It collects data from [JavLibrary](https://javlibrary.com/), [AVEntertainments](https://www.aventertainments.com/) and some studio's official sites.
 
-This agent currently only supports Japanese,you can create a pull request to help this project supports other languages.
+This agent currently only supports crawl Japanese content, you can create a pull request to help this project supports other languages.
+
+- [JAV.bundle](#javbundle)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Configuration](#configuration)
+  - [Guide](#guide)
+    - [Naming and organizing your videos](#naming-and-organizing-your-videos)
+    - [Manual identify your video](#manual-identify-your-video)
+  - [Contribute to this project](#contribute-to-this-project)
+  - [Credits](#credits)
+  - [Donate](#donate)
 
 
 ## Installation
-Download the latest source zip from [repository](https://github.com/Xavier-Lam/JAV.bundle),then unzip the zip file to the [Plex plugin folder](https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-). You can follow [this instruction](https://support.plex.tv/articles/201187656-how-do-i-manually-install-a-plugin/) to install JAV.bundle.
+Download the latest source zip from [repository](https://github.com/Xavier-Lam/JAV.bundle), then unzip the zip file to the [Plex plugin folder](https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-). You can follow [this instruction](https://support.plex.tv/articles/201187656-how-do-i-manually-install-a-plugin/) to install JAV.bundle.
 
 
 ## Usage
 After installing this plugin, you can select `JAV` as your library's agent in your library's edit page, and you should use `Plex Movie Scanner` as the library's scanner.
 
 For users in mainland of PR China, please make sure you have ability to access the sites which the agent crawls data from, these sites may be blocked by your government.
+
+### Configuration
+There are two preferences for JavLibrary agent. Whether to use [cloudscraper](https://github.com/VeNoMouS/cloudscraper) library to scraper data and what user-agent string to use when sending requests.
+
+I couldn't figure out why sometimes [cloudscraper](https://github.com/VeNoMouS/cloudscraper) may meet an unexpected protection page, this is just an option for when cloudscraper not work properly.
 
 
 ## Guide
@@ -48,11 +64,11 @@ I am not going to develop new features or add other data sources. You can create
 
 As the development document of plex plugin has been removed, you can check out [this archive](https://web.archive.org/web/20150107154037/http://dev.plexapp.com/docs/index.html) to learn how to develop a plex plugin.
 
-### Credits
+## Credits
 * This project is influenced by [JAVLibrary.bundle](https://github.com/w-k-io/JAVLibrary.bundle), thanks to [
 w-k.io](https://github.com/w-k-io).
 * The actresses' avatars provide by [gfriends](https://github.com/xinxin8816/gfriends) project.
-* I am looking forward to an [oppaitime](https://oppaiti.me) invitation, I'll very appreciate if some one give me an invitation.
 
-### TODOS:
-* JAVLibrary agent
+
+## Donate
+* I am looking for an [oppaitime](https://oppaiti.me) invitation, I'll very appreciate if someone give me an invitation.
