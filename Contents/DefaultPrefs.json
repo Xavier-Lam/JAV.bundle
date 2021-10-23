@@ -8,4 +8,9 @@
     "label": "User Agent",
     "type": "text",
     "default": ""
+}, {
+    "id": "proxy",
+    "label": "Http Proxy",
+    "type": "text",
+    "default": ""
 }]
