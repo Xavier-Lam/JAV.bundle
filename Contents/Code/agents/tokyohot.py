@@ -12,10 +12,13 @@ from .base import Base
 class TokyoHot(Base):
     name = "TokyoHot"
 
-    def __init__(self, lang=None):
-        super(TokyoHot, self).__init__(lang)
-        self.session = requests.session()
-        self.session.get("https://my.tokyo-hot.com/index?lang=ja")
+    @property
+    def session(self):
+        if not hasattr(self, "_session"):
+            session = requests.session()
+            session.get("https://my.tokyo-hot.com/index?lang=ja")
+            setattr(self, "_session", session)
+        return getattr(self, "_session")
 
     def get_results(self, media):
         rv = []

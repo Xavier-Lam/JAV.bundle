@@ -1,8 +1,12 @@
 # coding=utf-8
 
+import os
+
 
 def Start():
-    pass
+    if Prefs["proxy"]:
+        os.environ.setdefault("HTTP_PROXY", Prefs["proxy"])
+        os.environ.setdefault("HTTPS_PROXY", Prefs["proxy"])
 
 
 class JAVAgent(Agent.Movies):
