@@ -80,3 +80,5 @@ w-k.io](https://github.com/w-k-io).
 
 ## Donate
 * I am looking for an [oppaitime](https://oppaiti.me) and a [m-team](https://kp.m-team.cc) invitation, I'll be very appreciated if someone give me one.
+
+> I found some one has sent me an Oppaitime invitation for at least twice, it mistakenly being sent to spam mail folder, I am very appreciated and sorry for costing your invitation chance. 😂
