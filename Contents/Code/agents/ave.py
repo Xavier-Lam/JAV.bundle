@@ -1,33 +1,44 @@
 # coding=utf-8
 
 import datetime
+from difflib import SequenceMatcher
 import re
 
 from bs4 import BeautifulSoup
 import requests
 
-from .base import Base
+from .base import ID_PATTERN, LibraryAgent
 
 
-class AVE(Base):
-    name = "AVEntertainments"
+class AVE(LibraryAgent):
+    def get_name(self):
+        return "AVEntertainments"
 
-    def get_results(self, media):
-        rv = []
-        movie_id = self.get_local_id(media)
-        if movie_id:
-            if movie_id.lower().startswith("red-"):
-                movie_id = movie_id.lower().replace("red-", "red")
-            rv.extend(self.get_results_by_keyword(movie_id))
-        else:
-            vol_ids = self.get_volumn_id(media)
-            if vol_ids:
-                for vol_id in vol_ids:
-                    rv.extend(self.get_results_by_keyword(vol_id))
-        rv.extend(self.get_results_by_keyword(media.name))
-        return rv
+    def guess_keywords(self, name):
+        name = name.lower()
 
-    def get_results_by_keyword(self, keyword):
+        match = re.search(ID_PATTERN, name)
+        if match:
+            movie_id = match.group(1)
+            # fix match for red hot
+            if movie_id.startswith("red-"):
+                movie_id = movie_id.replace("red-", "red")
+            return [movie_id]
+
+        # Search for 'Vol.' like names
+        pattern = r"vol\s*\.?\s*(\d+)"
+        match = re.search(pattern, name)
+        if match:
+            rv = []
+            vol = int(match.group(1))
+            rv.append("Vol." + str(vol))
+            if vol < 100:
+                rv.append("Vol.0" + str(vol))
+            return rv
+
+        return []
+
+    def query(self, keyword):
         url = "https://www.aventertainments.com/search_Products.aspx"
         params = {
             "languageId": "2",
@@ -46,75 +57,60 @@ class AVE(Base):
             title_ele = product.find("p", "product-title").find("a")
             url = title_ele["href"]
             match = re.search("product_id=(\d+)", url)
-            rv.append({
-                "id": self.name + "." + match.group(1),
-                "name": title_ele.text.strip(),
-                "lang": self.lang,
-                "score": 100,
-                "thumb": product.find("div", "single-slider-product__image").find("img")["src"]
-            })
+            title = title_ele.text.strip()
+
+            if re.search(ID_PATTERN, keyword):
+                score = 100
+            else:
+                # A blur search
+                score = int(SequenceMatcher(None, keyword, title).ratio()*100)
+
+            rv.append(self.make_result(
+                match.group(1),
+                title,
+                thumb=product.find(
+                    "div", "single-slider-product__image").find("img")["src"],
+                score=score
+            ))
         return rv
 
-    def is_match(self, media):
-        meta_id = getattr(media, "metadata_id", "")
-        if meta_id:
-            return meta_id.startswith(self.name + ".")
-        else:
-            return bool(self.get_local_id(media)
-                        or self.get_volumn_id(media))
+    def get_metadata(self, metadata_id):
+        agent_id = self.get_agent_id(metadata_id)
+        data = self.crawl(agent_id)
 
-    def get_id(self, media, data=None):
-        if data:
-            return self.find_ele(data, "商品番号").text.strip()
-        return self.get_local_id(media)
+        title = self.get_original_title(data)
+        if not title:
+            raise Exception(
+                "Got an unexpected response for {0}".format(metadata_id))
 
-    def get_local_id(self, media):
-        pattern = r"(?:^|\s|\[|\(|\.|\\|\/)([a-z\d]+[-][a-z\d]+)(?:$|\s|\]|\)|\.)"
-        if hasattr(media, "name"):
-            match = re.search(pattern, media.name, re.I)
-            if match:
-                return match.group(1)
-        filename = media.items[0].parts[0].file.lower()
-        match = re.search(pattern, filename)
-        if match:
-            return match.group(1)
+        return {
+            "movie_id": self.get_id(data),
+            "agent_id": agent_id,
+            "title": title,
+            "originally_available_at": self.get_originally_available_at(data),
+            "roles": self.get_roles(data),
+            "studio": self.get_studio(data),
+            "duration": self.get_duration(data),
+            "genres": self.get_genres(data),
+            "collections": self.get_collections(data),
+            "summary": self.get_summary(data),
+            "posters": self.get_posters(data),
+            "art": self.get_thumbs(data)
+        }
 
-    def get_volumn_id(self, media):
-        filename = media.items[0].parts[0].file.lower()
-        pattern = r"vol\s*\.?\s*(\d+)"
-        match = re.search(pattern, filename)
-        rv = []
-        if match:
-            vol = int(match.group(1))
-            rv.append("Vol." + str(vol))
-            if vol < 100:
-                rv.append("Vol.0" + str(vol))
-        return rv
+    def get_id(self, data):
+        return self.find_ele(data, "商品番号").text.strip()
 
-    def get_title_sort(self, media, data):
-        return self.get_title(media, data)
-
-    def get_studio(self, media, data):
+    def get_studio(self, data):
         return self.find_ele(data, "スタジオ").text.strip()
 
-    def crawl(self, media):
-        url = "https://www.aventertainments.com/product_lists.aspx"
-        resp = requests.get(url, params={
-            "product_id": media.metadata_id.split(".")[1],
-            "languageID": 2,
-            "dept_id": "29"
-        })
-        resp.raise_for_status()
-        html = resp.content.decode("utf-8")
-        return BeautifulSoup(html, "html.parser")
-
-    def get_original_title(self, media, data):
+    def get_original_title(self, data):
         return "[{0}] {1}".format(
-            self.get_id(media, data),
+            self.get_id(data),
             data.find("div", "section-title").find("h3").text.strip()
         )
 
-    def get_originally_available_at(self, media, data):
+    def get_originally_available_at(self, data):
         ele = self.find_ele(data, "発売日")
         if ele:
             dt_str = ele.text.strip()
@@ -125,57 +121,68 @@ class AVE(Base):
             except ValueError:
                 pass
 
-    def get_roles(self, media, data):
+    def get_roles(self, data):
         ele = self.find_ele(data, "主演女優")
         if ele:
             return [
-                item.text.strip()
+                {"name": item.text.strip()}
                 for item in ele.findAll("a")
             ]
         return []
 
-    def get_duration(self, media, data):
+    def get_duration(self, data):
         ele = self.find_ele(data, "収録時間")
         if ele:
             match = re.search("\d+", ele.text)
             if match:
                 return int(match.group(0))*60*1000
 
-    def get_collections(self, media, data):
+    def get_collections(self, data):
         rv = []
-        studio = self.get_studio(media, data)
+        studio = self.get_studio(data)
         if studio:
             rv.append(studio)
         series = self.find_ele(data, "シリーズ")
         if series:
-            rv.append(series.text.strip())        
+            rv.append(series.text.strip())
         return rv
 
-    def get_genres(self, media, data):
+    def get_genres(self, data):
         ele = self.find_ele(data, "カテゴリ")
         if ele:
             return [ele.text.strip() for ele in ele.findAll("a")]
         return []
 
-    def get_summary(self, media, data):
+    def get_summary(self, data):
         ele = data.find("div", "product-description")
         if ele:
             return ele.text.strip()
-        
-    def get_posters(self, media, data):
-        thumbs = self.get_thumbs(media, data)
+
+    def get_posters(self, data):
+        thumbs = self.get_thumbs(data)
         return [
             thumb.replace("bigcover", "jacket_images")
             for thumb in thumbs
         ]
 
-    def get_thumbs(self, media, data):
+    def get_thumbs(self, data):
         ele = data.find("div", {"id": "PlayerCover"})
         if ele:
             return [
                 ele.find("img")["src"]
             ]
         return []
+
+    def crawl(self, agent_id):
+        url = "https://www.aventertainments.com/product_lists.aspx"
+        resp = requests.get(url, params={
+            "product_id": agent_id,
+            "languageID": 2,
+            "dept_id": "29"
+        })
+        resp.raise_for_status()
+        html = resp.content.decode("utf-8")
+        return BeautifulSoup(html, "html.parser")
 
     def find_ele(self, data, title):
         single_infos = data.findAll("div", "single-info")

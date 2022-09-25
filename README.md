@@ -9,11 +9,12 @@ This agent currently only supports crawl Japanese contents, you can create a pul
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Configuration](#configuration)
 - [Guide](#guide)
   - [Name and organize your videos](#name-and-organize-your-videos)
   - [Manually identify your video](#manually-identify-your-video)
 - [Contribute to this project](#contribute-to-this-project)
+- [Changelog](#changelog)
+  - [2022-09-06](#2022-09-06)
 - [Credits](#credits)
 - [Donate](#donate)
 
@@ -30,13 +31,6 @@ After the plugin has been installed, you can select `JAV` as your library's agen
 For users live in mainland of PR China, please make sure you have abilities to access the sites which the agent crawls data from, these sites may be blocked in your country.
 
 
-### Configuration
-There are two settings for JAV.bundle agent. Whether to use [cloudscraper](https://github.com/VeNoMouS/cloudscraper) library to scraper data and what user-agent string to use when sending requests.
-
-I couldn't figure out why sometimes [cloudscraper](https://github.com/VeNoMouS/cloudscraper) may meet an unexpected protection page, these settings may be useful when cloudscraper does not work properly.
-
-
-
 ## Guide
 ### Name and organize your videos
 For censored videos, the video's name or its parent folder's name must contain the video id, using space or square bracket to split the id from other parts of title like these:
@@ -45,7 +39,7 @@ For censored videos, the video's name or its parent folder's name must contain t
 * [JBD-226]No Torture Remaining 4 Shinoda Yu
 * JBD-226 No Torture Remaining 4 Shinoda Yu
 
-For the uncensored videos being crawled from their official site(including [caribbeancom](https://caribbeancom.com), [1pondo](https://1pondo.tv), [heyzo](https://heyzo.com) and [tokyo-hot](https://tokyo-hot.com)), I recommend to name your video or ancent folder by including both studio's name and the video's id:
+For the uncensored videos being crawled from their official site(including [caribbeancom](https://caribbeancom.com), [1pondo](https://1pondo.tv), [heyzo](https://heyzo.com) and [tokyo-hot](https://tokyo-hot.com)), I recommend to name your video or parent folder by including both studio's name and the video's id:
 
 * 1Pondo 052611_102 Nozomi Hazuki
 * Caribbean 111914-739 Facial For Mature 8 Part 1 Ryu Enami
@@ -53,12 +47,12 @@ For the uncensored videos being crawled from their official site(including [cari
 
 For other uncensored videos whose data is collected from [AVEntertainments](https://aventertainments.com), You should name your video like this:
 
-* [RED-052] Red Hot Fetish Collection Vol. 37 : Kiriya Anno
+* [RED-052] Red Hot Fetish Collection Vol.37 : Kiriya Anno
 * [SKY-101] Sky Angel Vol.63 Sayaka Fukuhara
 
 
 ### Manually identify your video
-Sometimes you may not get the correct match result for your video, especially for those who are collected by using AVEntertainments agent, whose match strategy is not very good. You can try to type the id of your video in the title field to correct the match result.
+Sometimes you may not get the correct match result for your video, you can try to type the id of your video in the title field to correct the match result.
 
 
 
@@ -67,18 +61,23 @@ You can create an issue to report bugs. Please descript your problem, provide th
 
 I am not going to develop new features or add other data sources. You can create a pull request to contribute to this project if you wish. 
 
-As the development document of plex plugin has been removed, you can check out [this archive](https://web.archive.org/web/20150107154037/http://dev.plexapp.com/docs/index.html) to learn how to develop a plex plugin.
+As the development document of plex plugin has been removed, you can check out [this archive](https://web.archive.org/web/20150107154037/http://dev.plexapp.com/docs/index.html) to learn how to develop a plex plugin. Your code must comply with [RestrictedPython](https://github.com/zopefoundation/RestrictedPython).
+
+
+
+## Changelog
+### 2022-09-06
+I refactored my code completely for a better maintenance and optimized the matching strategy. The naming pattern for video id had been changed, so if you add a new version to a video, this version will be regarded as a newly added video with the same name with the old one.
 
 
 
 ## Credits
-* This project is influenced by [JAVLibrary.bundle](https://github.com/w-k-io/JAVLibrary.bundle), thanks to [
-w-k.io](https://github.com/w-k-io).
+* This project is influenced by [JAVLibrary.bundle](https://github.com/w-k-io/JAVLibrary.bundle), thanks to [w-k.io](https://github.com/w-k-io).
 * The actresses' avatars are provided by [gfriends](https://github.com/xinxin8816/gfriends) project.
 
 
 
 ## Donate
-* I am looking for an [oppaitime](https://oppaiti.me) and a [m-team](https://kp.m-team.cc) invitation, I'll be very appreciated if someone give me one.
+* I am still looking for an [oppaitime](https://oppaiti.me) and a [m-team](https://kp.m-team.cc) invitation, I'll be very appreciated if someone give me one.
 
-> I found some one has sent me an Oppaitime invitation for at least twice, it mistakenly being sent to spam mail folder, I am very appreciated and sorry for costing your invitation chance. 😂
+> I found some one has sent me an Oppaitime invitation for at least three times, at first two times, it mistakenly being sent to my spam mail folder, and the third time I did not check my inbox until it expires, I am very sorry for wasting your chance to invite me. 😂

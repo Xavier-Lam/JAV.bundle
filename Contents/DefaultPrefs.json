@@ -1,16 +1,14 @@
-[{
-    "id": "enableJavLibraryCloudScraper",
-    "label": "Enable Javlibrary CloudScraper",
-    "type": "bool",
-    "default": true
-}, {
-    "id": "userAgent",
-    "label": "User Agent",
-    "type": "text",
-    "default": ""
-}, {
-    "id": "proxy",
-    "label": "Http Proxy",
-    "type": "text",
-    "default": ""
-}]
+[
+    {
+        "id": "userAgent",
+        "label": "User Agent",
+        "type": "text",
+        "default": ""
+    },
+    {
+        "id": "proxy",
+        "label": "Http Proxy",
+        "type": "text",
+        "default": ""
+    }
+]
