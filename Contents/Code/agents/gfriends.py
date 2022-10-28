@@ -2,6 +2,7 @@
 
 import requests
 from urllib import quote
+from urlparse import urlparse
 
 from .base import AvatarAgent
 
@@ -41,7 +42,7 @@ class GFriend(AvatarAgent, dict):
                 self[k[:-4]] = github_template.format(
                     quote("Content".encode("utf-8")),
                     quote(second.encode("utf-8")),
-                    quote(v.encode("utf-8"))
+                    quote(urlparse(v).path.encode("utf-8"))
                 )
 
         self.initialized = True
