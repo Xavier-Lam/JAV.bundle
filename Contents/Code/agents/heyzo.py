@@ -118,7 +118,7 @@ class Heyzo(StudioAgent, QueryAgent):
 
     def get_posters(self, movie_id):
         return [
-            "https://www.heyzo.com/contents/3000/{0}/images/thumbnail.jpg".format(
+            "https://www.heyzo.com/contents/3000/{0}/images/palyer_thumbnail.jpg".format(
                 movie_id)
         ]
 
