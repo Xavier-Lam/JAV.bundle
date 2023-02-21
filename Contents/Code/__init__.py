@@ -103,7 +103,7 @@ class JAVAgent(Agent.Movies):
         for agent in self.agents(lang).filter(agents.AvatarAgent):
             for role in meta_dict["roles"]:
                 role.update(agent.get_roledata(role["name"]))
-            # Only use higest priority agent
+            # Only use highest priority agent
             break
 
         # Update metadata
@@ -179,6 +179,7 @@ class AgentCollection(object):
             agents.TokyoHot(lang),
             agents.JAVLibrary(lang),
             agents.AVE(lang),
+            agents.WarashiPornstars(lang),
             agents.GFriend(lang),
         ]
 
