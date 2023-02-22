@@ -50,13 +50,12 @@ class AVE(LibraryAgent):
         resp.raise_for_status()
         html = resp.content.decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
-        wrap = soup.find("div", "shop-product-wrap")
-        products = wrap.findAll("div", "grid-view-product")
+        products = soup.find_all("div", "grid-view-product")
         rv = []
         for product in products:
             title_ele = product.find("p", "product-title").find("a")
             url = title_ele["href"]
-            match = re.search("product_id=(\d+)", url)
+            match = re.search("aventertainments.com/(\d+)/", url)
             title = title_ele.text.strip()
 
             if re.search(ID_PATTERN, keyword):
