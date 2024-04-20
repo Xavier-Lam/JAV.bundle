@@ -6,6 +6,12 @@
         "default": ""
     },
     {
+        "id": "javlibraryCFClearance",
+        "label": "JAVLibrary CF Clearance",
+        "type": "text",
+        "default": ""
+    },
+    {
         "id": "proxy",
         "label": "Http Proxy",
         "type": "text",

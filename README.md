@@ -9,11 +9,13 @@ This agent currently only supports crawl Japanese contents, you can create a pul
 
 - [Installation](#installation)
 - [Usage](#usage)
+  - [JAVLibrary](#javlibrary)
 - [Guide](#guide)
   - [Name and organize your videos](#name-and-organize-your-videos)
   - [Manually identify your video](#manually-identify-your-video)
 - [Contribute to this project](#contribute-to-this-project)
 - [Changelog](#changelog)
+  - [2024-04-20](#2024-04-20)
   - [2022-09-06](#2022-09-06)
 - [Credits](#credits)
 - [Donate](#donate)
@@ -29,6 +31,27 @@ Download the latest source zip from [repository](https://github.com/Xavier-Lam/J
 After the plugin has been installed, you can select `JAV` as your library's agent in your library's edit page, and you should use `Plex Movie Scanner` as the library's scanner.
 
 For users live in mainland of PR China, please make sure you have abilities to access the sites which the agent crawls data from, these sites may be blocked in your country.
+
+### JAVLibrary
+Recently, [JAVLibrary](https://javlibrary.com) reenabled cloudflare challenge. To bypass it, you have to follow these steps:
+
+1. Visit [JAVLibrary](https://javlibrary.com) on your server and pass the challenge.
+2. After you can see content on JAVLibrary
+   1. open developer tools of your browser by pressing `F12`,
+   2. refresh the page
+   3. choose `Network` tab and select `Doc`
+   4. choose the first request, copy the `User-Agent` header in your request and `cf_clearance` cookie value to the configuration in your plex agent Settings.
+  
+      ![](./.github/assets/developer_tool.png)
+      ![](./.github/assets/plex_agent_settings.jpeg)
+      ![](./.github/assets/jav_settings.png)
+
+I know it is a bit hard for a non-developer, but I couldn't find other easy solutions.
+
+> Note:
+> 1. **The source IP address you visit JAVLibrary should be identical to your plex server outbound IP address**, if you are using a proxy, the address would be the outbound IP address of your proxy;
+> 2. The `cf_clearance` value may change frequently, especially when you are using a proxy, every time your IP changes, the `cf_clearance` changes;
+> 3. Every time you update your browser, the `User-Agent` would change.
 
 
 ## Guide
@@ -66,6 +89,9 @@ As the development document of plex plugin has been removed, you can check out [
 
 
 ## Changelog
+### 2024-04-20
+Since [JAVLibrary](https://javlibrary.com) reenabled cloudflare challenge and [cloudscrapper](https://github.com/VeNoMouS/cloudscraper/tree/master) has not support the new challenge, I used a workaround by manual filling the User-Agent and challenge cookie in configuration page to bypass the challenge.
+
 ### 2022-09-06
 I refactored my code completely for a better maintenance and optimized the matching strategy. The naming pattern for video id had been changed, so if you add a new version to a video, this version will be regarded as a newly added video with the same name with the old one.
 
@@ -79,5 +105,3 @@ I refactored my code completely for a better maintenance and optimized the match
 
 ## Donate
 * I am still looking for an [oppaitime](https://oppaiti.me) and a [m-team](https://kp.m-team.cc) invitation, I'll be very appreciated if someone give me one.
-
-> I found some one has sent me an Oppaitime invitation for at least three times, at first two times, it mistakenly being sent to my spam mail folder, and the third time I did not check my inbox until it expires, I am very sorry for wasting your chance to invite me. 😂

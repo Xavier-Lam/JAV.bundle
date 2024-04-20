@@ -4,6 +4,7 @@ import datetime
 from difflib import SequenceMatcher
 import re
 
+# import cloudscraper
 from bs4 import BeautifulSoup
 import requests
 
@@ -173,6 +174,11 @@ class JAVLibrary(LibraryAgent):
     def session(self):
         if not self.s_requests:
             self.s_requests = requests.session()
-            if Prefs["userAgent"]:
-                self.s_requests.headers["User-Agent"] = Prefs["userAgent"]
+            # self.s_cloudscraper = cloudscraper.create_scraper(
+            #     sess=self.s_requests, debug=True)
+        if Prefs["userAgent"]:
+            self.s_requests.headers["User-Agent"] = Prefs["userAgent"]
+        if Prefs["javlibraryCFClearance"]:
+            self.s_requests.cookies.set(
+                "cf_clearance", Prefs["javlibraryCFClearance"], domain=".javlibrary.com")
         return self.s_requests

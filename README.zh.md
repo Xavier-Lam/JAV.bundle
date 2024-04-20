@@ -17,12 +17,24 @@
 
 对于居住在中国大陆的用户，请确保你有能力访问代理抓取数据的网站。
 
+### JAVLibrary
+最近 [JAVLibrary](https://javlibrary.com) 开启了cloudflare challenge. 需要通过以下配置绕过:
 
-### 配置
-JAV.bundle代理有两个配置。是否使用cloudscraper库来抓取数据，以及发送请求时使用的用户代理字符串。
+1. 在plex服务器上访问 [JAVLibrary](https://javlibrary.com)
+2. 成功访问上以后
+   1. 按`F12`打开开发者工具
+   2. 刷新页面
+   3. 选择`Network`的`Doc`
+   4. 选择第一个请求,复制`User-Agent`和`cf_clearance` cookie 到配置
+  
+      ![](./.github/assets/developer_tool.png)
+      ![](./.github/assets/plex_agent_settings.jpeg)
+      ![](./.github/assets/jav_settings.png)
 
-我不知道为什么有时cloudscraper会碰到一个意外的保护页面，当cloudscraper不能正常工作时，这些设置可能会起作用。
-
+> 注:
+> 1. **访问JAVLibrary的IP必须与服务器IP完全一致**,如果你使用代理,访问IP为代理的出口IP;
+> 2. `cf_clearance`可能会频繁变更;
+> 3. `User-Agent`随浏览器更新变更.
 
 
 ## 指引

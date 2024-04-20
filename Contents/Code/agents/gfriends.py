@@ -34,7 +34,7 @@ class GFriend(AvatarAgent, dict):
 
         map_json = response.json()
 
-        # plex doesnt support fucking recursive call
+        # plex doesn't support fucking recursive call
         data = map_json["Content"]
         second_lvls = data.keys()
         for second in second_lvls:

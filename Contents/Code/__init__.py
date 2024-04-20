@@ -35,7 +35,11 @@ class JAVAgent(Agent.Movies):
             for name in names:
                 keywords.union(agent.guess_keywords(name))
             for keyword in keywords:
-                query_results = agent.query(keyword)
+                try:
+                    query_results = agent.query(keyword)
+                except Exception as e:
+                    Log.Exception("%s", e)
+                    continue
                 for r in query_results:
                     if r.id not in got_ids:
                         got_ids.add(r.id)
@@ -75,7 +79,7 @@ class JAVAgent(Agent.Movies):
                     # Only use first matched agent
                     break
 
-        # Overrid data from studio agent
+        # Override data from studio agent
         for agent in self.agents(lang).filter(agents.StudioAgent):
             if meta_dict.get("studio") and agent.is_studio(meta_dict["studio"])\
                     or agent.is_match(metadata_id):
@@ -96,7 +100,7 @@ class JAVAgent(Agent.Movies):
         # for agent in self.agents(lang).filter(agents.ActressAgent):
         #     for role in meta_dict.roles:
         #         role.update(agent.get_roledata())
-        #     # Only use higest priority agent
+        #     # Only use highest priority agent
         #     break
 
         # Get actress photo
@@ -179,8 +183,8 @@ class AgentCollection(object):
             agents.TokyoHot(lang),
             agents.JAVLibrary(lang),
             agents.AVE(lang),
-            agents.WarashiPornstars(lang),
             agents.GFriend(lang),
+            agents.WarashiPornstars(lang),
         ]
 
     def filter(self, agent_type):
