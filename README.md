@@ -53,6 +53,8 @@ I know it is a bit hard for a non-developer, but I couldn't find other easy solu
 > 2. The `cf_clearance` value may change frequently, especially when you are using a proxy, every time your IP changes, the `cf_clearance` changes;
 > 3. Every time you update your browser, the `User-Agent` would change.
 
+> Or simply, you can use this project: [CF-Clearance-Scraper](https://github.com/Xewdy444/CF-Clearance-Scraper/tree/main) to get `cf_clearance` cookie.
+
 
 ## Guide
 ### Name and organize your videos
