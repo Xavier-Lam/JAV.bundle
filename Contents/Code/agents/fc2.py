@@ -76,17 +76,24 @@ class FC2(QueryAgent, StudioAgent):
         if data["code"] == 200:
             return [data["poster_image_path"]]
 
+    def get_title(self, movie_id):
+        url = 'https://adult.contents.fc2.com/api/v2/html/player/%s/endscreen' % int(movie_id)
+        resp = requests.get(url)
+        data = resp.json()
+        resp = requests.get(url)
+        if data["code"] == 200:
+            html = data["html"]
+            soup = BeautifulSoup(html, "html.parser")
+            title = soup.find("h1", class_="c-endscreen-101_title").text.strip()
+            return title
+        else:
+            return "FC2 %s" % movie_id
+
     def crawl(self, movie_id):
         Log("FC2 >>> crawl %s", movie_id)
-        url = 'https://adult.contents.fc2.com/article/%s/' % int(movie_id)
-        resp = requests.get(url)
-        resp.raise_for_status()
-        html = resp.content.decode("utf-8")
-        soup = BeautifulSoup(html, "html.parser")
-        title = soup.find("h3").text.strip()
         return {
             "movie_id": movie_id,
-            "title": title,
+            "title": self.get_title(movie_id),
             "genres": self.get_genres(movie_id),
             "studio": self.get_studio(),
             "posters": self.get_posters(movie_id),
