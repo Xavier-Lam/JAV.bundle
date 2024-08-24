@@ -39,12 +39,15 @@ class FC2(QueryAgent, StudioAgent):
     def get_tag_url(self, movie_id):
         return "https://adult.contents.fc2.com/api/v4/article/%d/tag?" % int(movie_id)
 
+    def get_tag_data(self, movie_id):
+        url = self.get_tag_url(movie_id)
+        resp = requests.get(url)
+        return resp.json()
+
     def is_match(self, metadata_id):
         movie_id = self.get_agent_id(metadata_id)
         if movie_id.isdigit():
-            url = self.get_tag_url(movie_id)
-            resp = requests.get(url)
-            data = resp.json()
+            data = self.get_tag_data(movie_id)
             return data["code"] == 200
         return False
 
@@ -52,10 +55,12 @@ class FC2(QueryAgent, StudioAgent):
         return [self.get_studio()]
 
     def get_genres(self, movie_id):
-        url = self.get_tag_url(movie_id)
-        resp = requests.get(url)
-        data = resp.json()
-        return [tag["tag"] for tag in data["tags"]]
+        data = self.get_tag_data(movie_id)
+        if data["code"] == 200:
+            genres = [tag["tag"] for tag in data["tags"]]
+            return genres
+        else:
+            return []
 
     def get_metadata(self, metadata_id):
         movie_id = self.get_agent_id(metadata_id)
