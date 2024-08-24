@@ -34,7 +34,7 @@ class FC2(QueryAgent, StudioAgent):
         return "FC2"
 
     def is_studio(self, name):
-        return "fc2" in name.lower()
+        return "fc" in name.lower()
 
     def get_studio(self):
         return "FC2"
