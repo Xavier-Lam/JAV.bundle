@@ -56,19 +56,27 @@ class FC2(QueryAgent, StudioAgent):
         movie_id = self.get_agent_id(metadata_id)
         return self.crawl(movie_id)
 
+    def get_posters(self, movie_id):
+        url = "https://adult.contents.fc2.com/api/v2/videos/%d/sample?" % int(movie_id)
+        resp = requests.get(url)
+        data = resp.json()
+        if data["code"] == 200:
+            return [data["poster_image_path"]]
+
     def crawl(self, movie_id):
+        Log("FC2 >>> crawl %s", movie_id)
         url = 'https://adult.contents.fc2.com/article/%s/' % int(movie_id)
         resp = requests.get(url)
         resp.raise_for_status()
         html = resp.content.decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
         title = soup.find("h3").text.strip()
-        poster = "http:"+soup.find("img", {"title":title})["src"]
         return {
             "movie_id": movie_id,
             "title": title,
             "genres": self.get_genres(movie_id),
             "studio": self.get_studio(),
-            "posters": [poster],
+            "posters": self.get_posters(movie_id),
             "roles": [], # FC2 doesn't track actresses
+            "collections": self.get_collections(),
         }
