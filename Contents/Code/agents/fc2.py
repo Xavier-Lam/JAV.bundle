@@ -46,6 +46,9 @@ class FC2(QueryAgent, StudioAgent):
             return data["code"] == 200
         return False
 
+    def get_collections(self, movie_id):
+        return [self.get_studio()]
+
     def get_genres(self, movie_id):
         url = self.get_tag_url(movie_id)
         resp = requests.get(url)
@@ -78,5 +81,5 @@ class FC2(QueryAgent, StudioAgent):
             "studio": self.get_studio(),
             "posters": self.get_posters(movie_id),
             "roles": [], # FC2 doesn't track actresses
-            "collections": self.get_collections(),
+            "collections": self.get_collections(movie_id),
         }
