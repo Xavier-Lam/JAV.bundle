@@ -89,4 +89,5 @@ class FC2(QueryAgent, StudioAgent):
             "posters": self.get_posters(movie_id),
             "roles": [], # FC2 doesn't track actresses
             "collections": self.get_collections(movie_id),
+            "agent_id": movie_id,
         }
