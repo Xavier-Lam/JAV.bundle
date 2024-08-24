@@ -19,6 +19,8 @@ class FC2(QueryAgent, StudioAgent):
             results = [r for r in results if r not in ['2', '4']]
 
             return results
+        else:
+            return []
 
 
     def query(self, keyword):
