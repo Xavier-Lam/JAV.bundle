@@ -18,6 +18,9 @@ class FC2(QueryAgent, StudioAgent):
             # filter bogus numbers from FC2 and mp4
             results = [r for r in results if r not in ['2', '4']]
 
+            # filter out small numbers
+            results = [r for r in results if int(r) > 1000]
+
             return results
         else:
             return []
