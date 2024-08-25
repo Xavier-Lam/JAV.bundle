@@ -15,10 +15,7 @@ class FC2(QueryAgent, StudioAgent):
         if self.is_studio(name):
             results = re.findall(r'\d+', name)
 
-            # filter bogus numbers from FC2 and mp4
-            results = [r for r in results if r not in ['2', '4']]
-
-            # filter out small numbers
+            # filter out small numbers e.g. '2' and '4' from FC2 and mp4
             results = [r for r in results if int(r) > 1000]
 
             return results
@@ -90,7 +87,6 @@ class FC2(QueryAgent, StudioAgent):
             return "FC2 %s" % movie_id
 
     def crawl(self, movie_id):
-        Log("FC2 >>> crawl %s", movie_id)
         return {
             "movie_id": movie_id,
             "title": self.get_title(movie_id),
