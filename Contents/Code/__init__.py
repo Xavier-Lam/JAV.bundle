@@ -185,6 +185,7 @@ class AgentCollection(object):
             agents.AVE(lang),
             agents.GFriend(lang),
             agents.WarashiPornstars(lang),
+            agents.FC2(lang),
         ]
 
     def filter(self, agent_type):
