@@ -178,6 +178,7 @@ class AgentCollection(object):
     def __init__(self, lang):
         self.agents = [
             agents.Caribbean(lang),
+            agents.CaribbeanPr(lang),
             agents.Heyzo(lang),
             agents.Pondo(lang),
             agents.TokyoHot(lang),

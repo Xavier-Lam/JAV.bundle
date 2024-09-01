@@ -128,21 +128,27 @@ class Caribbean(StudioAgent, QueryAgent):
         if ele:
             return ele.text.strip()
 
+    def base_url(self):
+        return "https://www.caribbeancom.com"
+
     def get_thumbs(self, movie_id):
         return [
-            "https://www.caribbeancom.com/moviepages/{0}/images/l_l.jpg".format(
+            "{0}/moviepages/{1}/images/l_l.jpg".format(
+                self.base_url(),
                 movie_id)
         ]
 
     def get_posters(self, movie_id):
         urls = self.get_thumbs(movie_id) + [
-            "https://www.caribbeancom.com/moviepages/{0}/images/jacket.jpg".format(
+            "{0}/moviepages/{1}/images/jacket.jpg".format(
+                self.base_url(),
                 movie_id)
         ]
         return [url for url in urls if requests.head(url).status_code != 404]
 
     def crawl(self, movie_id):
-        url = "https://www.caribbeancom.com/moviepages/{0}/index.html".format(
+        url = "{0}/moviepages/{1}/index.html".format(
+            self.base_url(),
             movie_id)
         resp = requests.get(url)
         resp.raise_for_status()
