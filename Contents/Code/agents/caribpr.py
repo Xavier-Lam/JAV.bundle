@@ -16,6 +16,15 @@ class CaribbeanPr(Caribbean):
                 return [match.group(1) + "_" + match.group(2)]
         return []
 
+    def get_original_title(self, movie_id, data):
+        title = data.find("h1").text.strip()
+        return "{0} {1} {2} {3}".format(
+            self.get_studio(),
+            movie_id,
+            title,
+            " ".join([role["name"] for role in self.get_roles(data)])
+        )
+
     def get_title_sort(self, movie_id):
         match = re.match(r"(\d{2})(\d{2})(\d{2})_(\d+)$", movie_id)
         return "{0} {1}".format(
