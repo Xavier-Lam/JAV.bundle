@@ -33,6 +33,17 @@ class CaribbeanPr(Caribbean):
                                    match.group(2), match.group(4))
         )
 
+    def get_roles(self, data):
+        ele = self.find_ele(data, "出演")
+        if ele:
+            items = ele.findAll("a", {"class": "spec-item"})
+            roles = [
+                {"name": item.text.strip()}
+                for item in items
+            ]
+            return roles
+        return []
+
     def is_studio(self, name):
         return name.lower() in ["caribpr"]
 
