@@ -4,6 +4,7 @@ from .base import (QueryAgent, MetadataAgent, LibraryAgent, StudioAgent,
                    ActressAgent, AvatarAgent)
 from .ave import AVE
 from .caribbean import Caribbean
+from .caribpr import CaribbeanPr
 from .fc2 import FC2
 from .heyzo import Heyzo
 from .gfriends import GFriend
