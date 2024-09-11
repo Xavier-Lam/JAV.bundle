@@ -12,3 +12,4 @@ from .javlibrary import JAVLibrary
 from .pondo import Pondo
 from .tokyohot import TokyoHot
 from .warashi import WarashiPornstars
+from .javdb import JavDB
