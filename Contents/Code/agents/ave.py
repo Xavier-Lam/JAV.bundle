@@ -65,13 +65,14 @@ class AVE(LibraryAgent):
                 # A blur search
                 score = int(SequenceMatcher(None, keyword, title).ratio()*100)
 
-            rv.append(self.make_result(
-                match.group(1),
-                title,
-                thumb=product.find(
-                    "div", "single-slider-product__image").find("img")["src"],
-                score=score
-            ))
+            if match:
+                rv.append(self.make_result(
+                    match.group(1),
+                    title,
+                    thumb=product.find(
+                        "div", "single-slider-product__image").find("img")["src"],
+                    score=score
+                ))
         return rv
 
     def get_metadata(self, metadata_id):

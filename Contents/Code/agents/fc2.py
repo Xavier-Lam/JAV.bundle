@@ -46,7 +46,7 @@ class FC2(QueryAgent, StudioAgent):
 
     def is_match(self, metadata_id):
         movie_id = self.get_agent_id(metadata_id)
-        if movie_id.isdigit():
+        if movie_id and movie_id.isdigit():
             data = self.get_tag_data(movie_id)
             return data["code"] == 200
         return False
