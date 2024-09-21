@@ -64,7 +64,9 @@ class JavDB(QueryAgent, StudioAgent):
         return resp.ok
 
     def get_posters(self, data):
-        return [data["cover"]]
+        # The thumbs endpoint returns the covers image if there are no thumbs
+        thumb = data["cover"].replace("covers", "thumbs")
+        return [thumb]
 
     def get_collections(self, data):
         k = u'\u7cfb\u5217' # 系列
