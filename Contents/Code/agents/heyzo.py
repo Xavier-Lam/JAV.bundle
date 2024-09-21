@@ -101,10 +101,13 @@ class Heyzo(StudioAgent, QueryAgent):
 
     def get_genres(self, data):
         ele = data.find("ul", "tag-keyword-list")
-        return [
-            item.text.strip()
-            for item in ele.findAll("a")
-        ]
+        if ele:
+            return [
+                item.text.strip()
+                for item in ele.findAll("a")
+            ]
+        else:
+            return []
 
     def get_rating(self, data):
         ele = self.find_ele(data, "table-estimate")
