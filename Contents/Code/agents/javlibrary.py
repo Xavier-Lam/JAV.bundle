@@ -154,7 +154,7 @@ class JAVLibrary(LibraryAgent):
     def crawl(self, agent_id):
         url = "https://www.javlibrary.com/ja/"
         resp = self.session.get(url, params={
-            "v": agent_id
+            "v": "jav" + agent_id
         })
         resp.raise_for_status()
         html = resp.content.decode("utf-8")
