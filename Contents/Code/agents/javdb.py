@@ -24,7 +24,7 @@ class JavDB(QueryAgent, StudioAgent):
 
     def query(self, keyword):
         url = 'https://javdb.com//search?q=%s&f=all' % keyword
-        resp = requests.get(url)
+        resp = self.session.get(url)
         resp.raise_for_status()
         html = resp.content.decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
@@ -60,7 +60,7 @@ class JavDB(QueryAgent, StudioAgent):
     def is_match(self, metadata_id):
         movie_id = self.get_agent_id(metadata_id)
         url = 'https://javdb.com/v/%s' % movie_id
-        resp = requests.head(url)
+        resp = self.session.head(url)
         return resp.ok
 
     def get_posters(self, data):
@@ -95,7 +95,7 @@ class JavDB(QueryAgent, StudioAgent):
 
     def crawl(self, movie_id):
         url = 'https://javdb.com/v/%s' % movie_id
-        resp = requests.get(url)
+        resp = self.session.get(url)
         resp.raise_for_status()
         html = resp.content.decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
@@ -124,3 +124,19 @@ class JavDB(QueryAgent, StudioAgent):
                 v = parts[1].strip()
                 data[k] = v
         return data
+
+    s_requests = None
+
+    @property
+    def session(self):
+        if not self.s_requests:
+            self.s_requests = requests.session()
+            # self.s_cloudscraper = cloudscraper.create_scraper(
+            #     sess=self.s_requests, debug=True)
+        if Prefs["userAgent"]:
+            self.s_requests.headers["User-Agent"] = Prefs["userAgent"]
+        if Prefs["javdbCFClearance"]:
+            self.s_requests.cookies.set(
+                "cf_clearance", Prefs["javdbCFClearance"], domain=".javdb.com")
+        return self.s_requests
+
