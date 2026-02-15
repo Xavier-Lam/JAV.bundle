@@ -59,10 +59,12 @@ class Heyzo(StudioAgent, QueryAgent):
         }
 
     def get_original_title(self, movie_id, data):
-        return "{0} {1} {2}".format(
+        title_text = data.find("div", {"id": "movie"}).find("h1").text
+        title_cleaned = re.sub(r'\s+', ' ', title_text).strip()
+        return u"{0} {1} {2}".format(
             self.get_studio(),
             movie_id,
-            data.find("div", {"id": "movie"}).find("h1").text.strip()
+            title_cleaned
         )
 
     def get_title_sort(self, movie_id):

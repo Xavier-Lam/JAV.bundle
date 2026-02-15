@@ -34,6 +34,9 @@ class Base(object):
     def get_movie_id(self, metadata_id):
         return metadata_id.split(",")[0]
 
+    def build_metadata_id(self, agent_id):
+        return "{0}.{1}".format(self.get_name(), agent_id)
+
 
 class QueryAgent(Base):
     """An agent available for search"""
@@ -43,7 +46,7 @@ class QueryAgent(Base):
 
     def make_result(self, agent_id, name, year=None, score=100, thumb=None):
         return MetadataSearchResult(
-            id="{0}.{1}".format(self.get_name(), agent_id),
+            id=self.build_metadata_id(agent_id),
             name=name,
             year=year,
             score=score,

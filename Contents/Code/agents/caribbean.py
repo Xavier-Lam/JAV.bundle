@@ -43,12 +43,16 @@ class Caribbean(StudioAgent, QueryAgent):
             raise Exception(
                 "Got an unexpected response for {0}".format(metadata_id))
 
+        available_at = self.get_originally_available_at(data)
+        if not available_at:
+            available_at = datetime.datetime.strptime(movie_id[:6], "%m%d%y")
+
         return {
             "movie_id": movie_id,
             "agent_id": movie_id,
             "title": title,
             "title_sort": self.get_title_sort(movie_id),
-            "originally_available_at": self.get_originally_available_at(data),
+            "originally_available_at": available_at,
             "roles": self.get_roles(data),
             "studio": self.get_studio(),
             "duration": self.get_duration(data),
