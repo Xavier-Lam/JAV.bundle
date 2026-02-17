@@ -2,6 +2,7 @@
 """Mock Plex classes for testing"""
 
 import json
+import os
 
 
 def Log(msg, *args):
@@ -27,7 +28,8 @@ class Prefs(dict):
 
     def __init__(self):
         super(Prefs, self).__init__()
-        self["proxy"] = None
+        # Load proxy setting from environment variable if available
+        self["proxy"] = os.environ.get('HTTP_PROXY')
         self["userAgent"] = None
         self["javdbCFClearance"] = None
         self["javlibraryCFClearance"] = None

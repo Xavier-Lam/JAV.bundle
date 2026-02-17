@@ -12,12 +12,6 @@
         "default": ""
     },
     {
-        "id": "javdbCFClearance",
-        "label": "JAVDB CF Clearance",
-        "type": "text",
-        "default": ""
-    },
-    {
         "id": "proxy",
         "label": "Http Proxy",
         "type": "text",

@@ -1,8 +1,11 @@
 # coding=utf-8
 
-from bs4 import BeautifulSoup
-import requests
 import re
+from urlparse import urlparse
+
+from bs4 import BeautifulSoup
+from hyper.contrib import HTTP20Adapter
+import requests
 
 from .base import ID_PATTERN, QueryAgent, StudioAgent
 
@@ -82,7 +85,7 @@ class JavDB(QueryAgent, StudioAgent):
         movie_id = self.get_agent_id(metadata_id)
         data = self.crawl(movie_id)
         result = {
-            "movie_id": self.get_movie_id(metadata_id),
+            "movie_id": data[u"\u756a\u865f"],
             "title": self.get_title(data),
             "genres": self.get_genres(data),
             "studio": self.get_studio(data),
@@ -129,14 +132,17 @@ class JavDB(QueryAgent, StudioAgent):
 
     @property
     def session(self):
+        """Create a requests session with HTTP/2 support"""
         if not self.s_requests:
             self.s_requests = requests.session()
-            # self.s_cloudscraper = cloudscraper.create_scraper(
-            #     sess=self.s_requests, debug=True)
-        if Prefs["userAgent"]:
-            self.s_requests.headers["User-Agent"] = Prefs["userAgent"]
-        if Prefs["javdbCFClearance"]:
-            self.s_requests.cookies.set(
-                "cf_clearance", Prefs["javdbCFClearance"], domain=".javdb.com")
-        return self.s_requests
 
+            proxy_host = None
+            proxy_port = None
+            if Prefs["proxy"]:
+                proxy_host = urlparse(Prefs["proxy"]).hostname
+                proxy_port = urlparse(Prefs["proxy"]).port
+            
+            # Create HTTP/2 adapter with proxy support
+            adapter = HTTP20Adapter(proxy_host=proxy_host, proxy_port=proxy_port)
+            self.s_requests.mount('https://javdb.com', adapter)
+        return self.s_requests
