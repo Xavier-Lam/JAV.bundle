@@ -1,5 +1,6 @@
 # JAV.bundle
 [![Donate with Bitcoin](https://en.cryptobadges.io/badge/micro/1BdJG31zinrMFWxRt2utGBU2jdpv8xSgju)](https://en.cryptobadges.io/donate/1BdJG31zinrMFWxRt2utGBU2jdpv8xSgju)
+[![test](https://github.com/Xavier-Lam/JAV.bundle/actions/workflows/test.yml/badge.svg)](https://github.com/Xavier-Lam/JAV.bundle/actions/workflows/test.yml)
 
 [中文版Readme](README.zh.md)
 
