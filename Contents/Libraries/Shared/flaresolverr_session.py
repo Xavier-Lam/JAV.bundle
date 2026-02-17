@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import json
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -8,14 +12,14 @@ from requests.structures import CaseInsensitiveDict
 __title__ = "flaresolverr-session"
 __description__ = "A requests.Session that proxies through a FlareSolverr instance."
 __url__ = "https://github.com/Xavier-Lam/FlareSolverrSession"
-__version__ = "0.1.0"
+__version__ = "0.1.3"
 __author__ = "Xavier-Lam"
 __author_email__ = "xavierlam7@hotmail.com"
 
 __all__ = ["Session", "FlareSolverr", "Response", "FlareSolverrError",
            "FlareSolverrChallengeError", "FlareSolverrCaptchaError",
            "FlareSolverrTimeoutError", "FlareSolverrSessionError",
-           "FlareSolverrUnsupportedMethodError"]
+           "FlareSolverrUnsupportedMethodError", "__version__"]
 
 
 class FlareSolverrError(requests.exceptions.RequestException):
@@ -101,12 +105,11 @@ class Session(requests.Session):
             method (str): HTTP method (``"GET"`` or ``"POST"``).
             url (str): Target URL.
             **kwargs: Keyword arguments.  Recognised keys include
-                ``data`` (for POST), ``cookies``, ``timeout``
-                (FlareSolverr ``maxTimeout`` in ms).  Standard
-                ``requests`` parameters such as ``headers``,
-                ``params`` etc. are accepted but ignored -- the
-                headless browser manages its own headers and
-                navigation.
+                ``params`` (URL query parameters), ``data`` (for POST),
+                ``cookies``, ``timeout`` (FlareSolverr ``maxTimeout``
+                in ms).  Standard ``requests`` parameters such as
+                ``headers`` are accepted but ignored -- the headless
+                browser manages its own headers and navigation.
 
         Returns:
             Response: A response built from the FlareSolverr solution,
@@ -148,6 +151,15 @@ class Session(requests.Session):
             super(Session, self).close()
 
     def _build_payload(self, method, url, **kwargs):
+        params = kwargs.get("params")
+        if params:            
+            if isinstance(params, dict):
+                encoded_params = urlencode(params)
+                if '?' in url:
+                    url = url + '&' + encoded_params
+                else:
+                    url = url + '?' + encoded_params
+        
         cmd = "request.get" if method == "GET" else "request.post"
         payload = {
             "cmd": cmd,
@@ -161,11 +173,6 @@ class Session(requests.Session):
             data = kwargs.get("data")
             if data is not None:
                 if isinstance(data, dict):
-                    # Python 2/3 compatible URL encoding
-                    try:
-                        from urllib import urlencode
-                    except ImportError:
-                        from urllib.parse import urlencode
                     data = urlencode(data)
                 elif not isinstance(data, str):
                     # Python 2 unicode handling

@@ -33,6 +33,7 @@ class Prefs(dict):
         self["userAgent"] = None
         self["javdbCFClearance"] = None
         self["javlibraryCFClearance"] = None
+        self["flaresolverrUrl"] = None
 
 
 class JSON(object):

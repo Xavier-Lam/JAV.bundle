@@ -4,8 +4,8 @@ import datetime
 from difflib import SequenceMatcher
 import re
 
-# import cloudscraper
 from bs4 import BeautifulSoup
+import flaresolverr_session
 import requests
 
 from .base import ID_PATTERN, LibraryAgent
@@ -172,13 +172,21 @@ class JAVLibrary(LibraryAgent):
 
     @property
     def session(self):
-        if not self.s_requests:
+        if Prefs["flaresolverrUrl"] and not isinstance(self.s_requests, flaresolverr_session.Session):
+            proxy = Prefs["proxy"] or None
+            self.s_requests = flaresolverr_session.Session(
+                Prefs["flaresolverrUrl"],
+                session_id="com.plexapp.agents.jav",
+                proxy=proxy,
+                timeout=20000,
+            )
+        if not Prefs["flaresolverrUrl"] and (
+                not self.s_requests or isinstance(self.s_requests, flaresolverr_session.Session)):
             self.s_requests = requests.session()
-            # self.s_cloudscraper = cloudscraper.create_scraper(
-            #     sess=self.s_requests, debug=True)
-        if Prefs["userAgent"]:
-            self.s_requests.headers["User-Agent"] = Prefs["userAgent"]
-        if Prefs["javlibraryCFClearance"]:
-            self.s_requests.cookies.set(
-                "cf_clearance", Prefs["javlibraryCFClearance"], domain=".javlibrary.com")
+        if not isinstance(self.s_requests, flaresolverr_session.Session):
+            if Prefs["userAgent"]:
+                self.s_requests.headers["User-Agent"] = Prefs["userAgent"]
+            if Prefs["javlibraryCFClearance"]:
+                self.s_requests.cookies.set(
+                    "cf_clearance", Prefs["javlibraryCFClearance"], domain=".javlibrary.com")
         return self.s_requests

@@ -7,12 +7,13 @@ try:
     from unittest.mock import patch, MagicMock
 except ImportError:
     from mock import patch, MagicMock
+import os
 
 from base_test import QueryAgentTest, MetadataAgentTest
 from agents.javlibrary import JAVLibrary
 
 
-class TestJAVLibraryQuery(QueryAgentTest):
+class TestJAVLibraryQueryMixin(object):
     """Test JAVLibrary query functionality"""
 
     agent_class = JAVLibrary
@@ -24,6 +25,10 @@ class TestJAVLibraryQuery(QueryAgentTest):
             'score_min': 95
         }),
     ]
+
+
+class TestJAVLibraryQuery(TestJAVLibraryQueryMixin, QueryAgentTest):
+    _original_session = None
 
     def setUp(self):
         """Set up test fixtures with mocked HTTP responses"""
@@ -50,10 +55,25 @@ class TestJAVLibraryQuery(QueryAgentTest):
         mock_session.get = mock_get
 
         # Use property mock
+        self._original_session = type(self.agent).session
         type(self.agent).session = property(lambda self: mock_session)
 
+    def tearDown(self):
+        type(self.agent).session = self._original_session
+        super(TestJAVLibraryQuery, self).tearDown()
 
-class TestJAVLibraryMetadata(MetadataAgentTest):
+
+class TestJAVLibraryQueryFlareSolverr(TestJAVLibraryQueryMixin, QueryAgentTest):
+    def setUp(self):
+        super(TestJAVLibraryQueryFlareSolverr, self).setUp()
+        Prefs["flaresolverrUrl"] = os.environ.get('FLARESOLVERR_URL')
+
+    def tearDown(self):
+        Prefs["flaresolverrUrl"] = None
+        super(TestJAVLibraryQueryFlareSolverr, self).tearDown()
+
+
+class TestJAVLibraryMetadataMixin(object):
     """Test JAVLibrary metadata retrieval"""
 
     agent_class = JAVLibrary
@@ -71,6 +91,10 @@ class TestJAVLibraryMetadata(MetadataAgentTest):
             'originally_available_at': datetime.datetime(2018, 6, 7),
         }),
     ]
+
+
+class TestJAVLibraryMetadata(TestJAVLibraryMetadataMixin, MetadataAgentTest):
+    _original_session = None
 
     def setUp(self):
         """Set up test fixtures with mocked HTTP responses"""
@@ -99,7 +123,22 @@ class TestJAVLibraryMetadata(MetadataAgentTest):
         mock_session.get = mock_get
 
         # Use property mock
+        self._original_session = type(self.agent).session
         type(self.agent).session = property(lambda self: mock_session)
+
+    def tearDown(self):
+        type(self.agent).session = self._original_session
+        super(TestJAVLibraryMetadata, self).tearDown()
+
+
+class TestJAVLibraryMetadataFlareResolverr(TestJAVLibraryMetadataMixin, MetadataAgentTest):
+    def setUp(self):
+        super(TestJAVLibraryMetadataFlareResolverr, self).setUp()
+        Prefs["flaresolverrUrl"] = os.environ.get('FLARESOLVERR_URL')
+
+    def tearDown(self):
+        Prefs["flaresolverrUrl"] = None
+        super(TestJAVLibraryMetadataFlareResolverr, self).tearDown()
 
 
 if __name__ == '__main__':

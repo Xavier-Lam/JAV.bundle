@@ -16,5 +16,11 @@
         "label": "Http Proxy",
         "type": "text",
         "default": ""
+    },
+    {
+        "id": "flaresolverrUrl",
+        "label": "FlareSolverr URL",
+        "type": "text",
+        "default": ""
     }
 ]

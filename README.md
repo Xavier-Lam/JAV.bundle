@@ -11,11 +11,14 @@ This agent currently only supports crawl Japanese contents, you can create a pul
 - [Installation](#installation)
 - [Usage](#usage)
   - [JAVLibrary](#javlibrary)
+    - [FlareSolverr](#flaresolverr)
+    - [Legacy](#legacy)
 - [Guide](#guide)
   - [Name and organize your videos](#name-and-organize-your-videos)
   - [Manually identify your video](#manually-identify-your-video)
 - [Contribute to this project](#contribute-to-this-project)
 - [Changelog](#changelog)
+  - [2026-02-17](#2026-02-17)
   - [2024-04-20](#2024-04-20)
   - [2022-09-06](#2022-09-06)
 - [Credits](#credits)
@@ -34,7 +37,14 @@ After the plugin has been installed, you can select `JAV` as your library's agen
 For users live in mainland of PR China, please make sure you have abilities to access the sites which the agent crawls data from, these sites may be blocked in your country.
 
 ### JAVLibrary
-Recently, [JAVLibrary](https://javlibrary.com) reenabled cloudflare challenge. To bypass it, you have to follow these steps:
+Recently, [JAVLibrary](https://javlibrary.com) reenabled cloudflare challenge. To bypass it, you have two options, one is a [legacy](#legacy) way by manually filling the User-Agent and challenge cookie in configuration page, the other is using [FlareSolverr](#flaresolverr) to bypass the challenge automatically.
+
+#### FlareSolverr
+If you've set up a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance, you can fill its URL in the agent's configuration to make the agent bypass the cloudflare challenge via FlareSolverr. It is the most convenient way to bypass the challenge. If a FlareSolverr URL is not provided, the agent will try to access JAVLibrary using the legacy way.
+
+It uses [FlareSolverrSession](https://github.com/Xavier-Lam/FlareSolverrSession) to manage the session with FlareSolverr.
+
+#### Legacy
 
 1. Visit [JAVLibrary](https://javlibrary.com) on your server and pass the challenge.
 2. After you can see content on JAVLibrary
@@ -92,6 +102,9 @@ As the development document of plex plugin has been removed, you can check out [
 
 
 ## Changelog
+### 2026-02-17
+[FlareSolverr support](#flaresolverr) has been added to bypass the cloudflare challenge of JAVLibrary.
+
 ### 2024-04-20
 Since [JAVLibrary](https://javlibrary.com) reenabled cloudflare challenge and [cloudscrapper](https://github.com/VeNoMouS/cloudscraper/tree/master) has not support the new challenge, I used a workaround by manual filling the User-Agent and challenge cookie in configuration page to bypass the challenge.
 
