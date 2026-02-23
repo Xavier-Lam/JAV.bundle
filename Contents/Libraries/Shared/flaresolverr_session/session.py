@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import json
+import threading
+import time
+import warnings
+
 try:
     from urllib import urlencode
 except ImportError:
@@ -9,41 +12,11 @@ except ImportError:
 import requests
 from requests.structures import CaseInsensitiveDict
 
-__title__ = "flaresolverr-session"
-__description__ = "A requests.Session that proxies through a FlareSolverr instance."
-__url__ = "https://github.com/Xavier-Lam/FlareSolverrSession"
-__version__ = "0.1.3"
-__author__ = "Xavier-Lam"
-__author_email__ = "xavierlam7@hotmail.com"
-
-__all__ = ["Session", "FlareSolverr", "Response", "FlareSolverrError",
-           "FlareSolverrChallengeError", "FlareSolverrCaptchaError",
-           "FlareSolverrTimeoutError", "FlareSolverrSessionError",
-           "FlareSolverrUnsupportedMethodError", "__version__"]
-
-
-class FlareSolverrError(requests.exceptions.RequestException):
-    """Base exception for FlareSolverr errors."""
-
-
-class FlareSolverrChallengeError(FlareSolverrError):
-    """Raised when FlareSolverr failed to solve the challenge."""
-
-
-class FlareSolverrCaptchaError(FlareSolverrChallengeError):
-    """Raised when a CAPTCHA was encountered but could not be solved."""
-
-
-class FlareSolverrTimeoutError(FlareSolverrError):
-    """Raised when FlareSolverr timed out while solving the challenge."""
-
-
-class FlareSolverrSessionError(FlareSolverrError):
-    """Raised when session operations (create / destroy) fail."""
-
-
-class FlareSolverrUnsupportedMethodError(FlareSolverrError):
-    """Raised when an unsupported HTTP method or content type is used."""
+from flaresolverr_session.rpc import RPC
+from flaresolverr_session.exceptions import (
+    FlareSolverrChallengeError,
+    FlareSolverrUnsupportedMethodError,
+)
 
 
 class Session(requests.Session):
@@ -55,18 +28,22 @@ class Session(requests.Session):
     FlareSolverr-specific attributes.
 
     Parameters:
-        flaresolverr_url (str): The FlareSolverr API endpoint
-            (e.g. ``"http://localhost:8191/v1"``).
+        flaresolverr_url (str or None): The FlareSolverr API endpoint
+            (e.g. ``"http://localhost:8191/v1"``).  Ignored when *rpc*
+            is provided.
         session_id (str or None): An optional FlareSolverr session id.
             When *None* a new session is automatically created.
         proxy (str, dict or None): A proxy specification.
             When a *str*, it is interpreted as a URL.
-            When a *dict*, it should contain ``"url"`` and optionally
-            ``"username"`` and ``"password"`` keys.
+            When a *dict*, it has a ``"url"`` key.
         timeout (int or None): ``maxTimeout`` in **milliseconds**
             passed to FlareSolverr.  Defaults to *60000* (60 s).
-        session (requests.Session or None): An optional pre-configured
-            session to use for API calls.
+        rpc (RPC or None): An optional pre-configured
+            :class:`~flaresolverr_session.rpc.RPC` instance.  When provided,
+            *flaresolverr_url* is ignored.
+        max_retries (int): Number of times to retry the request when a
+            :class:`~flaresolverr_session.exceptions.FlareSolverrChallengeError`
+            is raised (e.g. FlareSolverr challenge timeout).
 
     .. note::
 
@@ -80,16 +57,37 @@ class Session(requests.Session):
 
     _SUPPORTED_METHODS = ("GET", "POST")
 
-    def __init__(self, flaresolverr_url, session_id=None, proxy=None,
-                 timeout=None, session=None):
+    def __init__(
+        self,
+        flaresolverr_url=None,
+        session_id=None,
+        proxy=None,
+        timeout=None,
+        rpc=None,
+        max_retries=0,
+    ):
         super(Session, self).__init__()
-        self._flaresolverr_url = flaresolverr_url
-        self._timeout = timeout or self.DEFAULT_TIMEOUT
-        self._proxy = self._normalise_proxy(proxy)
 
+        if rpc is not None and flaresolverr_url is not None:
+            warnings.warn(
+                "Both 'rpc' and 'flaresolverr_url' are provided. "
+                "The 'rpc' instance will be used and 'flaresolverr_url' "
+                "will be ignored.",
+                stacklevel=2,
+            )
+
+        if not rpc:
+            rpc = RPC(flaresolverr_url)
+        self._rpc = rpc
+
+        self._timeout = timeout or self.DEFAULT_TIMEOUT
+        if proxy and not isinstance(proxy, dict):
+            proxy = {"url": proxy}
+        self._proxy = proxy
         self._session_id = session_id
-        self._api_session = session or requests.Session()
         self._session_created = False
+        self._max_retries = max_retries
+        self._lock = threading.Lock()
 
     @property
     def session_id(self):
@@ -118,10 +116,10 @@ class Session(requests.Session):
         Raises:
             FlareSolverrUnsupportedMethodError: If *method* is not
                 ``GET`` or ``POST``, or if ``json`` data is passed.
-            FlareSolverrChallengeError: If the challenge was not
-                solved.
-            FlareSolverrCaptchaError: If a CAPTCHA was detected.
-            FlareSolverrTimeoutError: If FlareSolverr timed out.
+            FlareSolverrResponseError: If FlareSolverr returns a
+                non-ok status for a reason not related to a challenge.
+            FlareSolverrChallengeError: If a challenge, CAPTCHA, or
+                timeout was encountered.
         """
         method = method.upper()
         if method not in self._SUPPORTED_METHODS:
@@ -136,139 +134,69 @@ class Session(requests.Session):
                 "POST requests. JSON POST is not supported."
             )
 
-        payload = self._build_payload(method, url, **kwargs)
-        resp_data = self._send(payload)
-        return Response(resp_data)
+        request_kwargs = self._build_request_kwargs(method, url, **kwargs)
+        send = getattr(self._rpc.request, method.lower())
+        attempts = 0
+        while True:
+            try:
+                with self._lock:
+                    resp_data = send(**request_kwargs)
+                    return Response(resp_data)
+            except FlareSolverrChallengeError:
+                if attempts >= self._max_retries:
+                    raise
+                attempts += 1
+                time.sleep(1)
 
     def close(self):
-        """Destroy the FlareSolverr session and close both the API
-        session and the inherited ``requests.Session``."""
+        """Destroy the FlareSolverr session and close the inherited
+        ``requests.Session``."""
         try:
             if self._session_created:
                 self._destroy_session()
         finally:
-            self._api_session.close()
             super(Session, self).close()
 
-    def _build_payload(self, method, url, **kwargs):
+    def _build_request_kwargs(self, method, url, **kwargs):
         params = kwargs.get("params")
-        if params:            
+        if params:
             if isinstance(params, dict):
                 encoded_params = urlencode(params)
-                if '?' in url:
-                    url = url + '&' + encoded_params
+                if "?" in url:
+                    url = url + "&" + encoded_params
                 else:
-                    url = url + '?' + encoded_params
-        
-        cmd = "request.get" if method == "GET" else "request.post"
-        payload = {
-            "cmd": cmd,
+                    url = url + "?" + encoded_params
+
+        request_kwargs = {
             "url": url,
-            "session": self.session_id,
-            "maxTimeout": kwargs.get("timeout", self._timeout),
+            "session_id": self.session_id,
+            "max_timeout": kwargs.get("timeout", self._timeout),
         }
 
         # POST data
         if method == "POST":
-            data = kwargs.get("data")
-            if data is not None:
-                if isinstance(data, dict):
-                    data = urlencode(data)
-                elif not isinstance(data, str):
-                    # Python 2 unicode handling
-                    try:
-                        if isinstance(data, unicode):  # noqa: F821
-                            data = data.encode("utf-8")
-                    except NameError:
-                        pass
-                    data = str(data)
-                payload["postData"] = data
+            request_kwargs["data"] = kwargs.get("data")
 
         # Optional cookies
-        cookies = kwargs.get("cookies")
-        if cookies:
-            payload["cookies"] = cookies
+        request_kwargs["cookies"] = kwargs.get("cookies")
 
-        return payload
-
-    def _handle_response(self, data):
-        status = data.get("status", "")
-        message = data.get("message", "")
-
-        if status != "ok":
-            self._raise_for_status(status, message)
-
-        return data
-
-    @staticmethod
-    def _normalise_proxy(proxy):
-        if proxy is None:
-            return None
-        if isinstance(proxy, dict):
-            return proxy
-        return {"url": proxy}
-
-    def _send(self, payload):
-        headers = {"Content-Type": "application/json"}
-        resp = self._api_session.post(
-            self._flaresolverr_url,
-            headers=headers,
-            data=json.dumps(payload),
-        )
-        data = resp.json()
-        return self._handle_response(data)
+        return request_kwargs
 
     def _create_session(self):
-        payload = {
-            "cmd": "sessions.create",
-        }
-        if self._session_id:
-            payload["session"] = self._session_id
-        if self._proxy:
-            payload["proxy"] = self._proxy
-
-        try:
-            data = self._send(payload)
-        except Exception as exc:
-            raise FlareSolverrSessionError(
-                "Failed to create FlareSolverr session: %s" % exc
-            )
-
-        if data.get("status") != "ok":
-            raise FlareSolverrSessionError(
-                "Failed to create FlareSolverr session: %s"
-                % data.get("message", "unknown error")
-            )
-
+        """Create a FlareSolverr browser session via RPC."""
+        data = self._rpc.session.create(session_id=self._session_id, proxy=self._proxy)
         self._session_id = data.get("session", self._session_id)
         self._session_created = True
 
     def _destroy_session(self):
+        """Destroy the FlareSolverr browser session via RPC."""
         if not self._session_id:
             return
-
-        payload = {
-            "cmd": "sessions.destroy",
-            "session": self._session_id,
-        }
         try:
-            self._send(payload)
+            self._rpc.session.destroy(self._session_id)
         except Exception:
             return  # Best-effort cleanup
-
         self._session_created = False
-
-    @staticmethod
-    def _raise_for_status(status, message):
-        msg_lower = message.lower() if message else ""
-
-        if "captcha" in msg_lower:
-            raise FlareSolverrCaptchaError(message)
-
-        if "timeout" in msg_lower:
-            raise FlareSolverrTimeoutError(message)
-
-        raise FlareSolverrChallengeError(message)
 
 
 class FlareSolverr(object):
@@ -284,8 +212,9 @@ class FlareSolverr(object):
         version (str): FlareSolverr server version.
     """
 
-    def __init__(self, status="", message="", user_agent="",
-                 start=0, end=0, version=""):
+    def __init__(
+        self, status="", message="", user_agent="", start=0, end=0, version=""
+    ):
         self.status = status
         self.message = message
         self.user_agent = user_agent
@@ -295,7 +224,10 @@ class FlareSolverr(object):
 
     def __repr__(self):
         return "FlareSolverr(status=%r, message=%r, version=%r)" % (
-             self.status, self.message, self.version)
+            self.status,
+            self.message,
+            self.version,
+        )
 
 
 class Response(requests.Response):
