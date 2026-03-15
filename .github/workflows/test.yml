@@ -1,0 +1,48 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "**/*.py"
+  pull_request:
+    branches: [master, main]
+    paths:
+      - "**/*.py"
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version: ["2.7"]
+
+    services:
+      flaresolverr:
+        image: ghcr.io/flaresolverr/flaresolverr:latest
+        ports:
+          - 8191:8191
+        env:
+          LOG_LEVEL: info
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 2.7
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python2 python2-dev
+          curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
+          python2 get-pip.py
+          echo "$(python2 -m site --user-base)/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          python2 -m pip install --upgrade pip
+          python2 -m pip install -r requirements_test.txt
+
+      - name: Run tests
+        env:
+          FLARESOLVERR_URL: http://localhost:8191/v1
+        run: |
+          python2 -m unittest discover -s tests -p "test_*.py" -v

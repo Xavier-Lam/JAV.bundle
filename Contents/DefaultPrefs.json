@@ -1,0 +1,68 @@
+[
+    {
+        "id": "series_as_collection",
+        "label": "Create collections from series",
+        "type": "bool",
+        "default": false
+    },
+    {
+        "id": "proxy",
+        "label": "HTTP Proxy (e.g. http://127.0.0.1:7890)",
+        "type": "text",
+        "default": ""
+    },
+    {
+        "id": "flaresolverr_url",
+        "label": "FlareSolverr URL (e.g. http://localhost:8191/v1)",
+        "type": "text",
+        "default": ""
+    },
+    {
+        "id": "user_agent",
+        "label": "User Agent (leave empty for default)",
+        "type": "text",
+        "default": ""
+    },
+    {
+        "id": "javlibrary_enabled",
+        "label": "Enable JavLibrary agent",
+        "type": "bool",
+        "default": true
+    },
+    {
+        "id": "javlibrary_cf_clearance",
+        "label": "JAVLibrary CF Clearance",
+        "type": "text",
+        "default": ""
+    },
+    {
+        "id": "dmm_enabled",
+        "label": "Enable DMM agent",
+        "type": "bool",
+        "default": true
+    },
+    {
+        "id": "mgstage_enabled",
+        "label": "Enable MGStage agent",
+        "type": "bool",
+        "default": true
+    },
+    {
+        "id": "seesaawiki_enabled",
+        "label": "Enable SeeSaaWiki agent",
+        "type": "bool",
+        "default": true
+    },
+    {
+        "id": "gfriends_enabled",
+        "label": "Enable GFriends agent",
+        "type": "bool",
+        "default": true
+    },
+    {
+        "id": "warashipornstars_enabled",
+        "label": "Enable WarashiPornStars agent",
+        "type": "bool",
+        "default": true
+    }
+]
