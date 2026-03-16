@@ -1,6 +1,5 @@
 # coding=utf-8
 
-import datetime
 import logging
 
 import flaresolverr_session
@@ -117,7 +116,6 @@ class BaseAgent(object):
                 session_id="com.plexapp.agents.jav",
                 timeout=20000,
                 max_retries=2,
-                ttl=datetime.timedelta(minutes=90)
             )
             flaresolverr_session_cache.flaresolverr_url = url
         fss = flaresolverr_session_cache.flaresolverr_session

@@ -5,8 +5,6 @@ from difflib import SequenceMatcher
 import re
 
 from bs4 import BeautifulSoup
-import flaresolverr_session
-import requests
 
 from .base import MetadataAgent, SearchAgent
 from .types import Metadata, Person, Resource, SearchItem

@@ -118,7 +118,7 @@ class TestPondoAgent(AgentTestCase):
         self.assertArtInclude(
             [u"https://www.1pondo.tv/assets/sample/090111_166/str.jpg"], metadata)
         self.assertTrailersInclude(
-            [u"https://smovie.1pondo.tv/sample/movies/090111_166/480p.mp4"], metadata)
+            [u"https://sample-1pondo.eroxjapanz.com/sample/movies/090111_166/480p.mp4"], metadata)
         self.assertGenresInclude([u"AV女優", u"ロリ", u"美尻",
                                   u"巨乳", u"美乳", u"潮吹き"], metadata)
 

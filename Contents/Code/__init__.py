@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import
 
+from collections import OrderedDict
 import json
 import logging
 import os
@@ -51,16 +52,17 @@ class JAVAgent(Agent.Movies):
         directory = os.path.basename(
             os.path.dirname(hints.items[0].parts[0].file))
 
+        name = getattr(hints, "name", "")
         Log.Info(
             "Search start name=%s filename=%s directory=%s lang=%s manual=%s",
-            hints.name, filename, directory, lang, manual
+            name, filename, directory, lang, manual
         )
         lang = self.normalize_lang(lang)
 
         # search with all search agents
         search_results = []
         for agent in filter(lambda a: isinstance(a, SearchAgent), self.agents):
-            keywords = agent.guess_keywords(hints.name, filename, directory)
+            keywords = agent.guess_keywords(name, filename, directory)
             if not keywords:
                 agent.logger.debug("No keywords guessed")
                 continue
@@ -88,7 +90,7 @@ class JAVAgent(Agent.Movies):
         for sr in search_results:
             results.Append(MetadataSearchResult(
                 id=sr.id,
-                name=self.uncensor_title(sr.title),
+                name=self.uncensor_text(sr.title, lang),
                 year=sr.year,
                 score=sr.score,
                 lang=lang,
@@ -109,6 +111,14 @@ class JAVAgent(Agent.Movies):
         Log.Info("Update start metadata_id=%s lang=%s force=%s periodic=%s",
                  movie.id, lang, force, periodic)
         lang = self.normalize_lang(lang)
+
+        if Prefs["force_update"] and force:
+            Log.Debug("Force update enabled, re-matching for the best match")
+            results = SearchResultCollection()
+            self.search(results, media, lang, manual=False)
+            if results:
+                movie.id = results[0].id
+                Log.Info("Forced update: new_metadata_id=%s", movie.id)
 
         video_code, agent_ids = parse_metadata_id(movie.id)
         metadata = Metadata()
@@ -167,7 +177,6 @@ class JAVAgent(Agent.Movies):
         metadata.year = None
 
     def apply_metadata(self, movie, metadata, lang):
-        movie.content_rating = "R"
         movie.content_rating_age = 18
         movie.countries.clear()
         movie.countries.add("JP")
@@ -177,9 +186,9 @@ class JAVAgent(Agent.Movies):
 
         if metadata.code_group:
             similar.add(metadata.code_group)
-        movie.title = self.uncensor_title(metadata.title)
+        movie.title = self.uncensor_text(metadata.title, lang)
         if metadata.japanese_title:
-            movie.original_title = self.uncensor_title(metadata.japanese_title)
+            movie.original_title = self.uncensor_text(metadata.japanese_title, lang)
         if metadata.release_date:
             movie.originally_available_at = metadata.release_date
             movie.year = metadata.release_date.year
@@ -187,10 +196,11 @@ class JAVAgent(Agent.Movies):
             movie.studio = metadata.studio
             similar.add(metadata.studio)
         if metadata.series:
-            similar.add(metadata.series)
-            tags.add(metadata.series)
+            series = self.uncensor_text(metadata.series, lang)
+            similar.add(series)
+            tags.add(series)
             if Prefs["series_as_collection"]:
-                movie.collections.add(metadata.series)
+                movie.collections.add(series)
         if metadata.duration:
             movie.duration = metadata.duration
 
@@ -238,14 +248,15 @@ class JAVAgent(Agent.Movies):
 
         title_sort = metadata.title_sort or metadata.title
         if title_sort:
-            movie.title_sort = title_sort
+            movie.title_sort = self.uncensor_text(title_sort, lang)
         if metadata.genres:
             movie.genres.clear()
             for g in metadata.genres:
                 movie.genres.add(g)
         if metadata.labels:
-            tags.update(metadata.labels)
-            similar.update(metadata.labels)
+            labels = {self.uncensor_text(l, lang) for l in metadata.labels}
+            tags.update(labels)
+            similar.update(labels)
         if metadata.summary:
             movie.summary = metadata.summary
         if metadata.rating is not None:
@@ -271,7 +282,7 @@ class JAVAgent(Agent.Movies):
     censored_words_cache = None
 
     @staticmethod
-    def uncensor_title(title):
+    def uncensor_text(title, lang):
         if not title:
             return title
         if JAVAgent.censored_words_cache is None:
@@ -311,6 +322,11 @@ class JAVAgent(Agent.Movies):
                       key=lambda a: a.weight, reverse=True)
 
 
+class SearchResultCollection(list):
+    def Append(self, obj):
+        self.append(obj)
+
+
 class PlexLogHandler(logging.Handler):
     def emit(self, record):
         try:
@@ -339,6 +355,7 @@ class PlexLogHandler(logging.Handler):
 def log_prefs():
     prefs = [(key, Prefs[key]) for key in [
         "series_as_collection",
+        "force_update",
         "proxy",
         "flaresolverr_url",
         "user_agent",
@@ -370,7 +387,7 @@ def parse_metadata_id(metadata_id):
     """
     part = metadata_id.split(",", 1)
     video_code = part[0]
-    agent_dict = {}
+    agent_dict = OrderedDict()
     if len(part) > 1 and part[1]:
         for segment in part[1].split(";"):
             if "." in segment:
@@ -380,7 +397,7 @@ def parse_metadata_id(metadata_id):
 
 
 def update_metadata_id(metadata_id, agent_name, agent_id):
-    _, agents = parse_metadata_id(metadata_id)
-    if not agents:
-        return "%s,%s.%s" % (metadata_id, agent_name, agent_id)
-    return "%s;%s.%s" % (metadata_id, agent_name, agent_id)
+    video_code, agent_ids = parse_metadata_id(metadata_id)
+    agent_ids[agent_name] = agent_id
+    segments = ";".join("%s.%s" % (n, i) for n, i in agent_ids.items())
+    return "%s,%s" % (video_code, segments)

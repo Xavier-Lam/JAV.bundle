@@ -4,8 +4,6 @@ from threading import Lock
 from urllib import quote
 from urlparse import urlparse
 
-import requests
-
 from .base import AvatarAgent
 
 
@@ -35,7 +33,7 @@ class GFriends(AvatarAgent):
 
             self.logger.info("Loading gfriends file tree has started.")
 
-            response = requests.get(FILETREE_URL)
+            response = self.session.get(FILETREE_URL)
             if response.status_code != 200:
                 self.logger.info("request gfriend map failed %s",
                                  response.status_code)

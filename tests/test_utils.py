@@ -48,6 +48,10 @@ class TestUpdateMetadataId(BaseTestCase):
         result = update_metadata_id("ABC-123", "a1", "id1")
         self.assertEqual(result, "ABC-123,a1.id1")
 
+    def test_updates_existing_agent(self):
+        result = update_metadata_id("ABC-123,a1.old_id", "a1", "new_id")
+        self.assertEqual(result, "ABC-123,a1.new_id")
+
 
 class TestGuessVideoCodePositive(BaseTestCase):
 

@@ -3,8 +3,6 @@
 import datetime
 import re
 
-import requests
-
 from .base import SearchAgent, StudioAgent
 from .types import Metadata, Person, Resource, SearchItem
 
@@ -184,7 +182,7 @@ class Pondo(SearchAgent, StudioAgent):
             dict or None: The parsed JSON, or ``None`` on error.
         """
         url = API_URL.format(video_code)
-        resp = requests.get(url)
+        resp = self.session.get(url)
         if resp.status_code != 200:
             return None
         try:

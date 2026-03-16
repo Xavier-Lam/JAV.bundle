@@ -6,12 +6,8 @@ from base import BaseTestCase
 import unittest
 
 import mock
-import requests
 
-from agents.gfriends import (
-    GFriends,
-    FILETREE_URL,
-)
+from agents import GFriends
 
 
 class TestGFriendsGetAvatar(BaseTestCase):
@@ -36,7 +32,7 @@ class TestGFriendsGetAvatar(BaseTestCase):
                 expected_url,
                 "Unexpected URL for actress {0!r}".format(name),
             )
-            resp = requests.head(result)
+            resp = self.agent.session.head(result)
             self.assertEqual(
                 resp.status_code,
                 200,
@@ -49,22 +45,18 @@ class TestGFriendsGetAvatar(BaseTestCase):
                     result, name),
             )
 
-    @mock.patch("agents.gfriends.requests.get")
-    def test_initialize_failure_leaves_uninitialised(self, mock_get):
-        mock_get.return_value = self.make_mock_response(status_code=500)
-
-        self.agent.initialize()
+    def test_initialize_failure_leaves_uninitialised(self):
+        with mock.patch.object(self.agent.session, 'get', return_value=self.make_mock_response(status_code=500)):
+            self.agent.initialize()
 
         self.assertFalse(self.agent.initialized)
         self.assertEqual(self.agent.resource, {})
 
-    @mock.patch("agents.gfriends.requests.get")
-    def test_initialize_called_only_once(self, mock_get):
-        mock_get.return_value = self.make_mock_response(
-            json_data={"Content": {}})
-
-        self.agent.initialize()
-        self.agent.initialize()
+    def test_initialize_called_only_once(self):
+        mock_get = mock.MagicMock(return_value=self.make_mock_response(json_data={"Content": {}}))
+        with mock.patch.object(self.agent.session, 'get', mock_get):
+            self.agent.initialize()
+            self.agent.initialize()
 
         self.assertEqual(mock_get.call_count, 1)
 

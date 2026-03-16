@@ -3,7 +3,6 @@
 import re
 import urllib
 
-import requests
 from bs4 import BeautifulSoup
 
 from .base import PartialMetadataAgent
@@ -153,7 +152,7 @@ class SeesaaWiki(PartialMetadataAgent):
 
     def fetch_page(self, url):
         """GET *url* and return a ``BeautifulSoup`` parsed with EUC-JP."""
-        resp = requests.get(url)
+        resp = self.session.get(url)
         resp.encoding = "euc-jp"
         return BeautifulSoup(resp.text, "html.parser")
 

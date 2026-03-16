@@ -1,7 +1,5 @@
 # coding=utf-8
 
-import requests
-
 from bs4 import BeautifulSoup
 
 from .base import AvatarAgent
@@ -29,7 +27,7 @@ class WarashiPornstars(AvatarAgent):
 
     def fetch(self, name):
         url = "http://warashi-asian-pornstars.fr/ja/s-12/%E6%A4%9C%E7%B4%A2"
-        resp = requests.post(url, dict(
+        resp = self.session.post(url, dict(
             recherche_critere="f",
             recherche_valeur=name,
             x=0,

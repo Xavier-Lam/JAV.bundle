@@ -147,7 +147,6 @@ class TestApplyMetadata(BaseTestCase):
         self.assertEqual(movie.year, 2022)
         self.assertEqual(movie.studio, "TestStudio")
         self.assertEqual(movie.duration, 7200000)
-        self.assertEqual(movie.content_rating, "R")
         self.assertEqual(movie.content_rating_age, 18)
         self.assertIn("JP", movie.countries)
 
@@ -455,47 +454,47 @@ class TestUncensorTitle(BaseTestCase):
         return hints
 
     def test_filled_circle_replaced(self):
-        result = JAVAgent.uncensor_title(u"J\u25cfとのセックス")
+        result = JAVAgent.uncensor_text(u"J\u25cfとのセックス", "ja")
         self.assertEqual(result, u"JKとのセックス")
 
     def test_white_circle_normalized(self):
         # ○ (U+25CB) is normalized to ● before lookup
-        result = JAVAgent.uncensor_title(u"J\u25cbとのセックス")
+        result = JAVAgent.uncensor_text(u"J\u25cbとのセックス", "ja")
         self.assertEqual(result, u"JKとのセックス")
 
     def test_large_white_circle_normalized(self):
         # ◯ (U+25EF) is normalized to ● before lookup
-        result = JAVAgent.uncensor_title(u"J\u25efとのセックス")
+        result = JAVAgent.uncensor_text(u"J\u25efとのセックス", "ja")
         self.assertEqual(result, u"JKとのセックス")
 
     def test_ideographic_zero_normalized(self):
         # 〇 (U+3007) is normalized to ● before lookup
-        result = JAVAgent.uncensor_title(u"J\u3007とのセックス")
+        result = JAVAgent.uncensor_text(u"J\u3007とのセックス", "ja")
         self.assertEqual(result, u"JKとのセックス")
 
     def test_fullwidth_variant_replaced(self):
-        result = JAVAgent.uncensor_title(u"Ｊ●生レイプ")
+        result = JAVAgent.uncensor_text(u"Ｊ●生レイプ", "ja")
         self.assertEqual(result, u"ＪＫ生レイプ")
 
     def test_multiple_censored_words(self):
-        result = JAVAgent.uncensor_title(u"J●とJ●の物語")
+        result = JAVAgent.uncensor_text(u"J●とJ●の物語", "ja")
         self.assertEqual(result, u"JKとJKの物語")
 
     def test_no_censored_words_unchanged(self):
-        result = JAVAgent.uncensor_title(u"普通のタイトル ABP-123")
+        result = JAVAgent.uncensor_text(u"普通のタイトル ABP-123", "ja")
         self.assertEqual(result, u"普通のタイトル ABP-123")
 
     def test_empty_string_returned(self):
-        result = JAVAgent.uncensor_title(u"")
+        result = JAVAgent.uncensor_text(u"", "ja")
         self.assertEqual(result, u"")
 
     def test_none_returned(self):
-        result = JAVAgent.uncensor_title(None)
+        result = JAVAgent.uncensor_text(None, "ja")
         self.assertIsNone(result)
 
     def test_cache_populated_after_first_call(self):
         self.assertIsNone(JAVAgent.censored_words_cache)
-        JAVAgent.uncensor_title(u"J●")
+        JAVAgent.uncensor_text(u"J●", "ja")
         self.assertIsNotNone(JAVAgent.censored_words_cache)
 
     def test_search_result_title_uncensored(self):
@@ -536,6 +535,7 @@ class TestUncensorTitle(BaseTestCase):
         meta = Metadata()
         meta.title = u"J〇女子校生コレクション"
         meta.japanese_title = u"Ｊ○女子校生コレクション"
+        meta.series = u"J〇女子校生"
 
         meta_agent = _MockMetadataAgent(Prefs)
         meta_agent.name = "ma"
@@ -548,6 +548,7 @@ class TestUncensorTitle(BaseTestCase):
 
         self.assertEqual(movie.title, u"JK女子校生コレクション")
         self.assertEqual(movie.original_title, u"ＪＫ女子校生コレクション")
+        self.assertIn(u"JK女子校生", movie.tags)
 
 
 class TestJAVAgentUpdate(BaseTestCase):
@@ -752,6 +753,80 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         self.assertEqual(movie.title, "Title Only")
         self.assertIsNone(movie.rating)
+
+    def test_force_update_pref_enabled_calls_search(self):
+        self.update_prefs(force_update=True)
+
+        meta_agent = _MockMetadataAgent(Prefs)
+        meta_agent.name = "ma"
+        meta_agent.metadata = Metadata()
+
+        agent = self._make_agent([meta_agent])
+        movie = Movie()
+        movie.id = "X,ma.id1"
+
+        with mock.patch.object(agent, "search") as mock_search:
+            agent.update(movie, None, "ja", force=True)
+
+        mock_search.assert_called_once()
+
+    def test_force_update_pref_disabled_skips_search(self):
+        self.update_prefs(force_update=False)
+
+        agent = self._make_agent([])
+        movie = Movie()
+        movie.id = "X,"
+
+        with mock.patch.object(agent, "search") as mock_search:
+            agent.update(movie, None, "ja", force=True)
+
+        mock_search.assert_not_called()
+
+    def test_force_update_force_false_skips_search(self):
+        self.update_prefs(force_update=True)
+
+        agent = self._make_agent([])
+        movie = Movie()
+        movie.id = "X,"
+
+        with mock.patch.object(agent, "search") as mock_search:
+            agent.update(movie, None, "ja", force=False)
+
+        mock_search.assert_not_called()
+
+    def test_force_update_replaces_movie_id_from_result(self):
+        self.update_prefs(force_update=True)
+        new_id = "NEW-001,ma.new_id"
+
+        def fake_search(results, hints, lang, manual=False):
+            r = mock.MagicMock()
+            r.id = new_id
+            results.Append(r)
+
+        meta_agent = _MockMetadataAgent(Prefs)
+        meta_agent.name = "ma"
+        meta_agent.metadata = Metadata()
+
+        agent = self._make_agent([meta_agent])
+        movie = Movie()
+        movie.id = "OLD-001,ma.old_id"
+
+        with mock.patch.object(agent, "search", side_effect=fake_search):
+            agent.update(movie, None, "ja", force=True)
+
+        self.assertEqual(movie.id, new_id)
+
+    def test_force_update_no_results_keeps_movie_id(self):
+        self.update_prefs(force_update=True)
+
+        agent = self._make_agent([])
+        movie = Movie()
+        movie.id = "ORIG-001,"
+
+        with mock.patch.object(agent, "search"):
+            agent.update(movie, None, "ja", force=True)
+
+        self.assertEqual(movie.id, "ORIG-001,")
 
 
 class TestJAVAgentAgentsProperty(BaseTestCase):

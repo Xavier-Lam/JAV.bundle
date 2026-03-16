@@ -4,7 +4,6 @@ import datetime
 import re
 
 from bs4 import BeautifulSoup
-import requests
 
 from .base import SearchAgent, StudioAgent
 from .types import Metadata, Person, Resource, SearchItem
@@ -47,7 +46,7 @@ class Heyzo(SearchAgent, StudioAgent):
     def search(self, keywords, lang):
         video_code = keywords[0]
         url = "{0}/moviepages/{1}/index.html".format(BASE_URL, video_code)
-        resp = requests.get(url)
+        resp = self.session.get(url)
         resp.raise_for_status()
         html = resp.content.decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
@@ -185,7 +184,7 @@ class Heyzo(SearchAgent, StudioAgent):
 
     def fetch(self, video_code, lang):
         url = "{0}/moviepages/{1}/index.html".format(BASE_URL, video_code)
-        resp = requests.get(url)
+        resp = self.session.get(url)
         resp.raise_for_status()
         return resp.content.decode("utf-8")
 

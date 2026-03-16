@@ -32,7 +32,9 @@ For the uncensored videos, except for the video code, you have to include the st
 > Sometimes you may not get the correct match results for your video, you can try to fill the code of your video in the title field to correct the match results.
 
 ## Migrate from legacy version
-The v2 version is backward compatible with the [legacy version](https://github.com/Xavier-Lam/JAV.bundle/tree/legacy), you can simply switch to the new version in your library's configuration. But newly added agents (`DMM` and `MGStage`) won't contribute metadata to existed videos, you need to re-match them manually by using `Fix Match`.
+The v2 version is backward compatible with the [legacy version](https://github.com/Xavier-Lam/JAV.bundle/tree/legacy), you can simply switch to the new version in your library's configuration. However, newly added agents (`DMM` and `MGStage`) won't contribute metadata to existing videos. 
+
+The recommended way to upgrade your library is to enable the `force_update` option in the plugin settings, then run `Refresh All Metadata` for your library, it will re-match all videos in your library and fetch metadata from all agents. Other options should also be configured before the first time you use the new version. After the refresh is done, you should disable the `force_update` option to avoid unnecessary refresh in the future.
 
 If you prefer the legacy version after you tried the new version, you can simply switch back to the legacy version, but the data fetched by new version may not be removed, you may need unmatch and match them again if you wish to get rid of all data fetched by new version. If you care very much about current metadata in your library, please [backup your database](https://support.plex.tv/articles/201539237-backing-up-plex-media-server-data/) before switching to the new version.
 
@@ -88,8 +90,9 @@ There is only a main agent `JAVAgent` to dispatch the search and metadata updati
 
     Since *PMS* 1.43.0, legacy agents won't show up by default when creating a new library. Enable `Show Legacy Agent during library set up` under `Server Settings > Library` to show legacy agents. You can look up the [instructions](https://support.plex.tv/articles/200241558-agents/) for more details.
 
-## Known issues
-* The trailers scraped may not load properly, they won't go through the proxy set in the plugin settings, some trailers are not accessible in some regions.
+* **Trailers won't play in Plex**
+
+    Some trailers are only available in some regions, the proxy setting in the plugin won't help in loading trailers because the request is made by Plex Media Server instead of the plugin. You can consider setting up a [sidecar proxy](https://github.com/Xavier-Lam/proxy-sidecar) if you are running your Plex Media Server in a docker container.
 
 ## Contribute to this project
 Any contribution is welcome, if you have any issue with a specific video, you can create an issue to report the problem. When submitting an issue, please provide your log file which located in your *[Plex Media Server data directory](https://support.plex.tv/articles/202915258-where-is-the-plex-media-server-data-directory-located/)/Logs/PMS Plugin Logs/com.plexapp.agents.jav.log*. I won't spend much time on the project, don't expect all issues will be resolved.
