@@ -32,9 +32,9 @@ For the uncensored videos, except for the video code, you have to include the st
 > Sometimes you may not get the correct match results for your video, you can try to fill the code of your video in the title field to correct the match results.
 
 ## Migrate from legacy version
-The v2 version is backward compatible with the [legacy version](https://github.com/Xavier-Lam/JAV.bundle/tree/legacy), you can simply switch to the new version in your library's configuration. However, newly added agents (`DMM` and `MGStage`) won't contribute metadata to existing videos. 
+The v2 version is backward compatible with the [legacy version](https://github.com/Xavier-Lam/JAV.bundle/tree/legacy), you can simply switch to the new version in your library's configuration. 
 
-The recommended way to upgrade your library is to enable the `force_update` option in the plugin settings, then run `Refresh All Metadata` for your library, it will re-match all videos in your library and fetch metadata from all agents. Other options should also be configured before the first time you use the new version. After the refresh is done, you should disable the `force_update` option to avoid unnecessary refresh in the future.
+After switching to the new version, it is recommended to configure the new options in the plugin settings first. After configuring the options, you can run `Refresh All Metadata` to get the new metadata for all your videos.
 
 If you prefer the legacy version after you tried the new version, you can simply switch back to the legacy version, but the data fetched by new version may not be removed, you may need unmatch and match them again if you wish to get rid of all data fetched by new version. If you care very much about current metadata in your library, please [backup your database](https://support.plex.tv/articles/201539237-backing-up-plex-media-server-data/) before switching to the new version.
 

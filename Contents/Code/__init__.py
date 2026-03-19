@@ -112,13 +112,16 @@ class JAVAgent(Agent.Movies):
                  movie.id, lang, force, periodic)
         lang = self.normalize_lang(lang)
 
-        if Prefs["force_update"] and force:
-            Log.Debug("Force update enabled, re-matching for the best match")
+        if is_legacy_metadata_id(movie.id):
+            Log.Debug("Legacy metadata ID detected, running search: %s", movie.id)
             results = SearchResultCollection()
             self.search(results, media, lang, manual=False)
             if results:
+                Log.Info("Resolved legacy metadata ID: %s -> %s", movie.id, results[0].id)
                 movie.id = results[0].id
-                Log.Info("Forced update: new_metadata_id=%s", movie.id)
+            else:
+                Log.Info("Search returned no results for legacy metadata ID: %s",
+                         movie.id)
 
         video_code, agent_ids = parse_metadata_id(movie.id)
         metadata = Metadata()
@@ -355,7 +358,6 @@ class PlexLogHandler(logging.Handler):
 def log_prefs():
     prefs = [(key, Prefs[key]) for key in [
         "series_as_collection",
-        "force_update",
         "proxy",
         "flaresolverr_url",
         "user_agent",
@@ -370,13 +372,31 @@ def log_prefs():
     Log.Info("Current preferences: %s", prefs)
 
 
+def is_legacy_metadata_id(metadata_id):
+    """Return True if *metadata_id* uses the legacy format.
+
+    Legacy formats are:
+
+    * bare video code with no separator: ``ABC-123``
+    * old comma-separated format: ``ABC-123,agent.id``
+    """
+    return "," in metadata_id
+
+
 def parse_metadata_id(metadata_id):
     """
     Parse a composite metadata ID string.
 
-    The format is::
+    The canonical format uses a pipe as the first separator:
+
+        {video_code}|{agent_name1}.{agent_id1};{agent_name2}.{agent_id2};...
+
+    For backward compatibility the legacy comma-separated format is also
+    accepted:
 
         {video_code},{agent_name1}.{agent_id1};{agent_name2}.{agent_id2};...
+
+    A bare video code with no separator is also accepted.
 
     Args:
         metadata_id (str): The raw metadata ID.
@@ -385,7 +405,12 @@ def parse_metadata_id(metadata_id):
         tuple[str, dict[str, str]]: ``(video_code, agent_dict)`` where
         *agent_dict* maps agent names to their IDs.
     """
-    part = metadata_id.split(",", 1)
+    if "|" in metadata_id:
+        part = metadata_id.split("|", 1)
+    elif "," in metadata_id:
+        part = metadata_id.split(",", 1)
+    else:
+        part = [metadata_id]
     video_code = part[0]
     agent_dict = OrderedDict()
     if len(part) > 1 and part[1]:
@@ -400,4 +425,4 @@ def update_metadata_id(metadata_id, agent_name, agent_id):
     video_code, agent_ids = parse_metadata_id(metadata_id)
     agent_ids[agent_name] = agent_id
     segments = ";".join("%s.%s" % (n, i) for n, i in agent_ids.items())
-    return "%s,%s" % (video_code, segments)
+    return "%s|%s" % (video_code, segments)

@@ -28,6 +28,7 @@ VIDEO_CODE_TEST_CASES = [
 ACTRESS_NAME_TEST_CASES = [
     (u"白石みお", u"かなで自由"),
     (u"篠田ゆう", u"篠田ゆう"),
+    (u"大槻ひびき", u"大槻ひびき"),
 ]
 
 

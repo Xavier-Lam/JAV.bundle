@@ -29,6 +29,10 @@ class TestCaribbeanAgent(AgentTestCase):
             "042215_858",
         )
 
+    def test_search_not_found(self):
+        results = self.agent.search(["nonexistent"], "ja")
+        self.assertEqual(0, len(results))
+
     def test_search_042215_858(self):
         video_code = "042215-858"
         results = self.agent.search([video_code], "ja")

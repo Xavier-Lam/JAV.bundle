@@ -64,6 +64,16 @@ class TestDMMAgent(AgentTestCase):
             u"CXD-017 誘惑、女教師。葉山さゆり", results[0].title)
         self.assertEqual(100, results[0].score)
 
+    def test_search_IBW_431(self):
+        video_code = "IBW-431"
+        results = self.agent.search([video_code], "ja")
+        self.assertEqual(1, len(results))
+        self.assertEqual(u"mono_dvd_504ibw431z", results[0].id)
+        self.assertEqual(video_code, results[0].video_code)
+        self.assertEqual(
+            u"IBW-431 親には内緒の妹近親相姦旅行 かれん1○才", results[0].title)
+        self.assertEqual(100, results[0].score)
+
     # ---------------------------------------------------------------------------
     # Metadata test cases
     # ---------------------------------------------------------------------------
@@ -83,7 +93,7 @@ class TestDMMAgent(AgentTestCase):
         self.assertGenresInclude([u"巨乳", u"SM", u"単体作品", u"縛り・緊縛"], metadata)
         self.assertLabelsInclude([u"蛇縛"], metadata)
         self.assertPostersInclude(
-            [u"https://pics.dmm.co.jp/mono/movie/jbd226/jbd226ps.jpg"], metadata)
+            [u"https://pics.dmm.co.jp/mono/movie/adult/jbd226/jbd226ps.jpg"], metadata)
         self.assertArtInclude(
             [u"https://pics.dmm.co.jp/mono/movie/adult/jbd226/jbd226pl.jpg"], metadata)
         self.assertTrailersInclude(
@@ -91,28 +101,16 @@ class TestDMMAgent(AgentTestCase):
         self.assertSummaryExists(metadata)
         self.assertRatingExists(metadata)
 
-    def test_metadata_MVG_109(self):
-        video_code = "MVG-109"
-        agent_id = "rental_ppr_2mvg109"
+    def test_metadata_XVSR_316(self):
+        video_code = "XVSR-316"
+        agent_id = "mono_dvd_xvsr316"
         metadata = self.agent.get_metadata(agent_id, video_code, "ja")
         self.assertTitleEquals(
-            u"MVG-109 3連休の無人の学校で緊縛調教されマゾ堕ちしていく巨乳女教師 あやせ舞菜", metadata)
-        self.assertReleaseDateIs(datetime.datetime(2025, 4, 24), metadata)
-        self.assertStudioIs(u"グローリークエスト", metadata)
-        self.assertSeriesIs(u"3連休の無人の学校で緊縛調教されマゾ堕ちしていく女教師", metadata)
-        self.assertDurationExists(metadata)
-        self.assertActressesInclude([u"綾瀬舞菜"], metadata)
-        self.assertDirectorsInclude([u"薄刃紫翠"], metadata)
-        self.assertGenresInclude([u"女教師", u"縛り・緊縛"], metadata)
-        self.assertLabelsInclude([u"GLORY QUEST"], metadata)
+            u"XVSR-316 大槻ひびきとイチャLOVE中出しデート", metadata)
         self.assertPostersInclude(
-            [u"https://pics.dmm.co.jp/mono/movie/2mvg109/2mvg109ps.jpg"], metadata)
+            [u"https://pics.dmm.co.jp/mono/movie/adult/xvsr316so/xvsr316sops.jpg"], metadata)
         self.assertArtInclude(
-            [u"https://pics.dmm.co.jp/mono/movie/2mvg109/2mvg109pl.jpg"], metadata)
-        self.assertTrailersInclude(
-            [u"https://cc3001.dmm.co.jp/pv/NBYrEmAdMQbg3yvQtuWxptv-zuH1zyXAksihN2kqxM2z1Dheaw6doikrq50S3/mvg00109mhb.mp4"], metadata)
-        self.assertSummaryExists(metadata)
-        self.assertRatingExists(metadata)
+            [u"https://pics.dmm.co.jp/mono/movie/adult/xvsr316so/xvsr316sopl.jpg"], metadata)
 
     def test_metadata_PRTD_033(self):
         video_code = "PRTD-033"

@@ -6,12 +6,6 @@
         "default": false
     },
     {
-        "id": "force_update",
-        "label": "Force update metadata (re-match and choose the best result every time before updating)",
-        "type": "bool",
-        "default": false
-    },
-    {
         "id": "proxy",
         "label": "HTTP Proxy (e.g. http://127.0.0.1:7890)",
         "type": "text",

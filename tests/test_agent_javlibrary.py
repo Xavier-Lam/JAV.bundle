@@ -58,10 +58,43 @@ class TestJAVLibraryAgent(AgentTestCase):
         self.assertGenresInclude([u"巨乳", u"SM"], metadata)
         self.assertLabelsInclude([u"蛇縛"], metadata)
         self.assertPostersInclude(
-            [u"https://pics.dmm.co.jp/mono/movie/adult/jbd226/jbd226ps.jpg"], metadata)
+            [u"https://pics.dmm.co.jp/mono/movie/adult/jbd226/jbd226ps.jpg",
+             u"https://t20.pixhost.to/thumbs/31/72135613_t367904.jpg"], metadata)
         self.assertArtInclude(
-            [u"https://pics.dmm.co.jp/mono/movie/adult/jbd226/jbd226pl.jpg"], metadata)
+            [u"https://pics.dmm.co.jp/mono/movie/adult/jbd226/jbd226pl.jpg",
+             u"https://img20.pixhost.to/images/31/72133054_i367904.jpg"], metadata)
         self.assertRatingExists(metadata)
+        self.assertLess(metadata.posters[1].score, metadata.posters[0].score)
+
+    def test_metadata_KBI_061(self):
+        video_code = "KBI-061"
+        agent_id = "me5loza"
+        metadata = self.agent.get_metadata(agent_id, video_code, "ja")
+        self.assertTitleEquals(u"KBI-061 凛と美しい元音楽教師妻を飼いならす。～美人妻をやりたい放題密室軟禁調教録～ 中出し5連発！！", metadata)
+        self.assertPostersInclude(
+            [u"https://t55.pixhost.to/thumbs/62/208845521_1624680ls.jpg"], metadata)
+        self.assertArtInclude(
+            [u"https://img55.pixhost.to/images/62/208845520_1624680ll.jpg"], metadata)
+
+    def test_metadata_ASW_249(self):
+        video_code = "ASW-249"
+        agent_id = "li6b24m"
+        metadata = self.agent.get_metadata(agent_id, video_code, "ja")
+        self.assertPostersInclude(
+            [u"https://t33.pixhost.to/thumbs/217/115728236_1526985s.jpg"], metadata)
+        self.assertArtInclude(
+            [u"https://img33.pixhost.to/images/217/115728234_1526985l.jpg"], metadata)
+
+    def test_metadata_BONY_109_filters_dmm_noimage(self):
+        video_code = "BONY-109"
+        results = self.agent.search([video_code], "ja")
+        self.assertGreater(len(results), 0)
+        agent_id = results[0].id
+        metadata = self.agent.get_metadata(agent_id, video_code, "ja")
+        self.assertPostersInclude(
+            [u"https://t96.pixhost.to/thumbs/824/484260377_t608526.jpg"], metadata)
+        self.assertArtInclude(
+            [u"https://img96.pixhost.to/images/823/484248168_i608526.jpg"], metadata)
 
 
 class TestJAVLibrarySessionManagement(BaseTestCase):

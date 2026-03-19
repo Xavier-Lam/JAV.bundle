@@ -92,6 +92,10 @@ class TestPondoAgent(AgentTestCase):
             u"Caribpr 090111_166",
         )
 
+    def test_search_not_found(self):
+        results = self.agent.search(["nonexistent"], "ja")
+        self.assertEqual(0, len(results))
+
     def test_search_090111_166(self):
         video_code = "090111_166"
         results = self.agent.search([video_code], "ja")

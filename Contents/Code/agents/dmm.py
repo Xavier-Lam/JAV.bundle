@@ -200,17 +200,22 @@ class DMM(SearchAgent, MetadataAgent):
         if label_value:
             metadata.labels = set([label_value])
 
-        # Posters
-        metadata.posters = [Resource(self.image_url(cid, "ps", pattern))]
-
-        # Art
+        # Poster & Art – scrape from the page image, fall back to pattern.
         img = soup.find("img", src=lambda s: s and "pics.dmm.co.jp" in s)
         if img:
-            src = re.sub(r"(?<=/)([^/]+)(?:ps|pt)\.jpg$", r"\1pl.jpg",
-                         img.get("src", ""))
-            if src:
-                metadata.art = [Resource(src)]
-        if not metadata.art:
+            src = img.get("src", "")
+            art_url = re.sub(
+                r"(?<=/)([^/]+)(?:ps|pt)\.jpg$", r"\1pl.jpg", src)
+            art_url = Resource(art_url)
+            art_url.score = 55
+            poster_url = re.sub(
+                r"(?<=/)([^/]+)(?:pl|pt)\.jpg$", r"\1ps.jpg", src)
+            poster_url = Resource(poster_url)
+            poster_url.score = 55
+            metadata.posters = [poster_url]
+            metadata.art = [art_url]
+        else:
+            metadata.posters = [Resource(self.image_url(cid, "ps", pattern))]
             metadata.art = [Resource(self.image_url(cid, "pl", pattern))]
 
         # Trailer

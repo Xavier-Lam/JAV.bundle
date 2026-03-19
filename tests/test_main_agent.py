@@ -324,7 +324,7 @@ class TestJAVAgentSearch(BaseTestCase):
         self.assertEqual(len(results._media), 1)
         # The merged result ID should contain both agents
         self.assertEqual(
-            results._media[0].id, "ABC-123,source1.src1_id;source2.src2_id")
+            results._media[0].id, "ABC-123|source1.src1_id;source2.src2_id")
 
     def test_different_video_codes_not_merged(self):
         s1 = _MockSearchAgent(Prefs)
@@ -543,7 +543,7 @@ class TestUncensorTitle(BaseTestCase):
 
         agent = self._make_agent([meta_agent])
         movie = Movie()
-        movie.id = "JK-001,ma.id1"
+        movie.id = "JK-001|ma.id1"
         agent.update(movie, None, "ja")
 
         self.assertEqual(movie.title, u"JK女子校生コレクション")
@@ -570,7 +570,7 @@ class TestJAVAgentUpdate(BaseTestCase):
             mock_get.return_value = m
             agent = self._make_agent([meta_agent])
             movie = Movie()
-            movie.id = "CODE-1,testmeta.id1"
+            movie.id = "CODE-1|testmeta.id1"
             agent.update(movie, None, "fr")
 
         mock_get.assert_called_once()
@@ -587,7 +587,7 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         agent = self._make_agent([meta_agent])
         movie = Movie()
-        movie.id = "ABC-123,ma.mid"
+        movie.id = "ABC-123|ma.mid"
         agent.update(movie, None, "ja")
 
         self.assertEqual(movie.title, "Test Title")
@@ -614,7 +614,7 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         agent = self._make_agent([a1, a2])
         movie = Movie()
-        movie.id = "X,a1.id1;a2.id2"
+        movie.id = "X|a1.id1;a2.id2"
         agent.update(movie, None, "ja")
 
         # First non-None wins for scalars (should_contribute_to returns
@@ -646,7 +646,7 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         agent = self._make_agent([a1, a2])
         movie = Movie()
-        movie.id = "X,a1.id1;a2.id2"
+        movie.id = "X|a1.id1;a2.id2"
 
         # apply_metadata downloads images; mock requests in the Code module
         mock_resp = mock.MagicMock()
@@ -671,7 +671,7 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         agent = self._make_agent([partial])
         movie = Movie()
-        movie.id = "CODE-1,"
+        movie.id = "CODE-1|x.y"
         agent.update(movie, None, "ja")
 
         self.assertTrue(captured.get("called"))
@@ -686,7 +686,7 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         agent = self._make_agent([_FailPartial(Prefs)])
         movie = Movie()
-        movie.id = "CODE-1,"
+        movie.id = "CODE-1|x.y"
 
         # Should not raise
         agent.update(movie, None, "ja")
@@ -700,7 +700,7 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         agent = self._make_agent([_FailMeta(Prefs)])
         movie = Movie()
-        movie.id = "CODE-1,fail_meta.id1"
+        movie.id = "CODE-1|fail_meta.id1"
 
         # Should not raise
         agent.update(movie, None, "ja")
@@ -714,7 +714,7 @@ class TestJAVAgentUpdate(BaseTestCase):
         agent = self._make_agent([meta_agent])
         # No agent id for "ma" in the metadata_id
         movie = Movie()
-        movie.id = "CODE-1,other.id1"
+        movie.id = "CODE-1|other.id1"
         agent.update(movie, None, "ja")
 
         self.assertNotEqual(movie.title, "Should Not Appear")
@@ -728,7 +728,7 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         agent = self._make_agent([meta_agent])
         movie = Movie()
-        movie.id = "X,ma.id1"
+        movie.id = "X|ma.id1"
         movie.genres.add("OldGenre")
         movie.studio = "OldStudio"
 
@@ -748,55 +748,14 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         agent = self._make_agent([meta_agent])
         movie = Movie()
-        movie.id = "X,ma.id1"
+        movie.id = "X|ma.id1"
         agent.update(movie, None, "ja")
 
         self.assertEqual(movie.title, "Title Only")
         self.assertIsNone(movie.rating)
 
-    def test_force_update_pref_enabled_calls_search(self):
-        self.update_prefs(force_update=True)
-
-        meta_agent = _MockMetadataAgent(Prefs)
-        meta_agent.name = "ma"
-        meta_agent.metadata = Metadata()
-
-        agent = self._make_agent([meta_agent])
-        movie = Movie()
-        movie.id = "X,ma.id1"
-
-        with mock.patch.object(agent, "search") as mock_search:
-            agent.update(movie, None, "ja", force=True)
-
-        mock_search.assert_called_once()
-
-    def test_force_update_pref_disabled_skips_search(self):
-        self.update_prefs(force_update=False)
-
-        agent = self._make_agent([])
-        movie = Movie()
-        movie.id = "X,"
-
-        with mock.patch.object(agent, "search") as mock_search:
-            agent.update(movie, None, "ja", force=True)
-
-        mock_search.assert_not_called()
-
-    def test_force_update_force_false_skips_search(self):
-        self.update_prefs(force_update=True)
-
-        agent = self._make_agent([])
-        movie = Movie()
-        movie.id = "X,"
-
-        with mock.patch.object(agent, "search") as mock_search:
-            agent.update(movie, None, "ja", force=False)
-
-        mock_search.assert_not_called()
-
-    def test_force_update_replaces_movie_id_from_result(self):
-        self.update_prefs(force_update=True)
-        new_id = "NEW-001,ma.new_id"
+    def test_legacy_comma_id_triggers_search_and_updates(self):
+        new_id = "NEW-001|ma.new_id"
 
         def fake_search(results, hints, lang, manual=False):
             r = mock.MagicMock()
@@ -812,21 +771,50 @@ class TestJAVAgentUpdate(BaseTestCase):
         movie.id = "OLD-001,ma.old_id"
 
         with mock.patch.object(agent, "search", side_effect=fake_search):
-            agent.update(movie, None, "ja", force=True)
+            agent.update(movie, None, "ja")
 
         self.assertEqual(movie.id, new_id)
 
-    def test_force_update_no_results_keeps_movie_id(self):
-        self.update_prefs(force_update=True)
+    def test_legacy_bare_id_triggers_search_and_updates(self):
+        new_id = "NEW-001|ma.new_id"
 
+        def fake_search(results, hints, lang, manual=False):
+            r = mock.MagicMock()
+            r.id = new_id
+            results.Append(r)
+
+        meta_agent = _MockMetadataAgent(Prefs)
+        meta_agent.name = "ma"
+        meta_agent.metadata = Metadata()
+
+        agent = self._make_agent([meta_agent])
+        movie = Movie()
+        movie.id = "OLD-001"
+
+        with mock.patch.object(agent, "search", side_effect=fake_search):
+            agent.update(movie, None, "ja")
+
+        self.assertEqual(movie.id, new_id)
+
+    def test_legacy_id_no_results_keeps_movie_id(self):
         agent = self._make_agent([])
         movie = Movie()
-        movie.id = "ORIG-001,"
+        movie.id = "ORIG-001"
 
         with mock.patch.object(agent, "search"):
-            agent.update(movie, None, "ja", force=True)
+            agent.update(movie, None, "ja")
 
-        self.assertEqual(movie.id, "ORIG-001,")
+        self.assertEqual(movie.id, "ORIG-001")
+
+    def test_new_format_id_skips_search(self):
+        agent = self._make_agent([])
+        movie = Movie()
+        movie.id = "X|agent.id1"
+
+        with mock.patch.object(agent, "search") as mock_search:
+            agent.update(movie, None, "ja")
+
+        mock_search.assert_not_called()
 
 
 class TestJAVAgentAgentsProperty(BaseTestCase):

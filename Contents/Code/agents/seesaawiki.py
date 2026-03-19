@@ -133,7 +133,14 @@ class SeesaaWiki(PartialMetadataAgent):
             self.cache[name] = name
             return name
 
-        title, url = results[0]
+        # Prefer the result whose title exactly matches the input name,
+        # since continuation pages (e.g. "大槻ひびき 2") may rank higher.
+        best = results[0]
+        for title, url in results:
+            if title.strip() == name:
+                best = (title, url)
+                break
+        title, url = best
         if not url:
             self.cache[name] = name
             return name
@@ -212,7 +219,8 @@ class SeesaaWiki(PartialMetadataAgent):
         if title_div:
             text = title_div.get_text().strip()
             if text:
-                return text
+                # Strip continuation page suffixes (e.g. " 2", " 3").
+                return re.sub(r"\s+\d+$", "", text)
 
         title_tag = soup.find("title")
         if title_tag:

@@ -6,7 +6,7 @@ import re
 # Pattern for standard JAV video codes (e.g. "JBD-226")
 VIDEO_CODE_PATTERN = re.compile(
     r"(?:^|\s|\[|\(|\.|\\|/)"
-    r"([a-zA-Z]+-\d+)"
+    r"([a-zA-Z]+-[a-zA-Z]*\d+)"
     r"(?:$|\s|\]|\)|\.)",
 )
 

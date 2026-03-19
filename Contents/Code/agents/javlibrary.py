@@ -5,6 +5,7 @@ from difflib import SequenceMatcher
 import re
 
 from bs4 import BeautifulSoup
+import requests
 
 from .base import MetadataAgent, SearchAgent
 from .types import Metadata, Person, Resource, SearchItem
@@ -201,9 +202,20 @@ class JAVLibrary(SearchAgent, MetadataAgent):
             if src and not src.startswith("http"):
                 src = "https:" + src
             if src:
-                poster_url = src.replace("pl.jpg", "ps.jpg")
-                metadata.posters = [Resource(poster_url)]
-                metadata.art = [Resource(src)]
+                art = []
+                if not self.is_dmm_noimage(src):
+                    art.append(Resource(src))
+                fallback_url = self.extract_fallback_url(img.get("onerror", ""))
+                if fallback_url and not self.is_dmm_noimage(fallback_url):
+                    fallback = Resource(fallback_url)
+                    fallback.score = 45
+                    art.append(fallback)
+                if art:
+                    metadata.art = art
+
+        posters = self.fetch_poster_images(agent_id)
+        if posters:
+            metadata.posters = posters
 
         return metadata
 
@@ -215,6 +227,45 @@ class JAVLibrary(SearchAgent, MetadataAgent):
         resp = self.session.get(url, params={"v": "jav" + agent_id})
         resp.raise_for_status()
         return resp.content.decode("utf-8")
+
+    def fetch_comments(self, agent_id):
+        """Fetch the comment page HTML for the given agent ID."""
+        url = "{0}/ja/videocomments.php".format(BASE_URL)
+        if agent_id.endswith(".html"):
+            agent_id = agent_id[:-5]
+        resp = self.session.get(url, params={"v": "jav" + agent_id})
+        resp.raise_for_status()
+        return resp.content.decode("utf-8")
+
+    def fetch_poster_images(self, agent_id):
+        """Return poster Resources from the comment page.
+
+        The primary poster is taken from the ``src`` of the jacket image on the
+        comment page.  If the ``onerror`` attribute contains a fallback URL via
+        ``ThumbError(this, 'URL')``, it is appended with a lower score.
+        """
+        html = self.fetch_comments(agent_id)
+        soup = BeautifulSoup(html, "html.parser")
+        jacket_div = soup.select_one("div#video_jacket")
+        if not jacket_div:
+            return []
+        img = jacket_div.find("img")
+        if not img:
+            return []
+        src = img.get("src", "")
+        if src and not src.startswith("http"):
+            src = "https:" + src
+        if not src:
+            return []
+        posters = []
+        if not self.is_dmm_noimage(src):
+            posters.append(Resource(src))
+        fallback_url = self.extract_fallback_url(img.get("onerror", ""))
+        if fallback_url and not self.is_dmm_noimage(fallback_url):
+            fallback = Resource(fallback_url)
+            fallback.score = 45
+            posters.append(fallback)
+        return posters
 
     # ------------------------------------------------------------------
     # Helpers
@@ -234,6 +285,28 @@ class JAVLibrary(SearchAgent, MetadataAgent):
             str or None: Agent ID (e.g. ``"li7ah34"``), or ``None``.
         """
         match = re.search(r"jav([a-z0-9]+)(?:\.html)?$", href)
+        if match:
+            return match.group(1)
+        return None
+
+    def is_dmm_noimage(self, url):
+        """Return True if the DMM image URL redirects to a noimage placeholder."""
+        if "dmm.co.jp" not in url and "dmm.com" not in url:
+            return False
+        try:
+            resp = requests.head(url, allow_redirects=True)
+            return "noimage" in resp.url
+        except Exception:
+            return False
+
+    @staticmethod
+    def extract_fallback_url(onerror):
+        """Extract the fallback image URL from an ``onerror`` attribute value.
+
+        Handles the ``ThumbError(this, 'URL')`` JavaScript pattern used by
+        JAVLibrary.  Returns ``None`` when the pattern is absent.
+        """
+        match = re.search(r"ThumbError\(this,\s*'([^']+)'\)", onerror)
         if match:
             return match.group(1)
         return None

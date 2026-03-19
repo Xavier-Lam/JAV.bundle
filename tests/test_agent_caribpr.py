@@ -42,6 +42,10 @@ class TestCaribbeanPrAgent(AgentTestCase):
             u"一本道 072122_001 男を一瞬でその気にさせる罪な女",
         )
 
+    def test_search_not_found(self):
+        results = self.agent.search(["nonexistent"], "ja")
+        self.assertEqual(0, len(results))
+
     def test_search_072215_284(self):
         video_code = u"072215_284"
         results = self.agent.search([video_code], "ja")

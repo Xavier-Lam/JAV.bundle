@@ -3,6 +3,8 @@
 import datetime
 import re
 
+from requests import HTTPError
+
 from .base import SearchAgent, StudioAgent
 from .types import Metadata, Person, Resource, SearchItem
 
@@ -44,9 +46,13 @@ class Pondo(SearchAgent, StudioAgent):
 
     def search(self, keywords, lang):
         video_code = keywords[0]
-        data = self.fetch_json(video_code)
-        if data is None:
-            return []
+        try:
+            data = self.fetch_json(video_code)
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                self.logger.info(u"video code {0} not found".format(video_code))
+                return []
+            raise
 
         title = data.get("Title", video_code)
         release_date = self.parse_release(data)
@@ -146,7 +152,8 @@ class Pondo(SearchAgent, StudioAgent):
             best = sample_files[-1]
             url = best.get("URL")
             if url:
-                trailer = Resource(url.replace("smovie.1pondo.tv", "sample-1pondo.eroxjapanz.com"))
+                trailer = Resource(url.replace(
+                    "smovie.1pondo.tv", "sample-1pondo.eroxjapanz.com"))
                 trailer.thumb = "{0}/assets/sample/{1}/str.jpg".format(
                     BASE_URL, video_code
                 )
@@ -183,12 +190,8 @@ class Pondo(SearchAgent, StudioAgent):
         """
         url = API_URL.format(video_code)
         resp = self.session.get(url)
-        if resp.status_code != 200:
-            return None
-        try:
-            return resp.json()
-        except (ValueError, TypeError):
-            return None
+        resp.raise_for_status()
+        return resp.json()
 
     def parse_release(self, data):
         """Parse the Release field into a datetime.

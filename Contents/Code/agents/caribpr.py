@@ -5,6 +5,7 @@ import json
 import re
 
 from bs4 import BeautifulSoup
+from requests import HTTPError
 
 from .base import SearchAgent, StudioAgent
 from .types import Metadata, Person, Resource, SearchItem
@@ -46,10 +47,13 @@ class CaribbeanPr(SearchAgent, StudioAgent):
 
     def search(self, keywords, lang):
         video_code = keywords[0]
-        url = "{0}/moviepages/{1}/index.html".format(BASE_URL, video_code)
-        resp = self.session.get(url)
-        resp.raise_for_status()
-        html = resp.content.decode("euc-jp", errors="ignore")
+        try:
+            html = self.fetch(video_code, lang)
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                self.logger.info(u"video code {0} not found".format(video_code))
+                return []
+            raise
         soup = BeautifulSoup(html, "html.parser")
 
         section = soup.select_one("div.movie-info div.section.is-wide")

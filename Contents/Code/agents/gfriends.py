@@ -31,7 +31,7 @@ class GFriends(AvatarAgent):
             if self.initialized:
                 return
 
-            self.logger.info("Loading gfriends file tree has started.")
+            self.logger.info("loading gfriends file tree has started.")
 
             response = self.session.get(FILETREE_URL)
             if response.status_code != 200:
@@ -39,7 +39,7 @@ class GFriends(AvatarAgent):
                                  response.status_code)
                 return
 
-            self.logger.info("Finish loading gfriends file tree")
+            self.logger.info("finish loading gfriends file tree")
 
             map_json = response.json()
 
