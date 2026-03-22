@@ -1,5 +1,6 @@
 # JAV.bundle
 [![test](https://github.com/Xavier-Lam/JAV.bundle/actions/workflows/test.yml/badge.svg)](https://github.com/Xavier-Lam/JAV.bundle/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/Xavier-Lam/JAV.bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/Xavier-Lam/JAV.bundle)
 
 **JAV.bundle** is a [plex](https://plex.tv) agent plugin gathering metadata for Japanese adult videos, the metadata includes but not limited to release date, studio, genres, actresses, posters and trailers. It crawls data from [JAVLibrary](https://javlibrary.com), [DMM](https://www.dmm.co.jp) and some studios' official sites.
 
@@ -36,7 +37,7 @@ The v2 version is backward compatible with the [legacy version](https://github.c
 
 After switching to the new version, it is recommended to configure the new options in the plugin settings first. After configuring the options, you can run `Refresh All Metadata` to get the new metadata for all your videos.
 
-If you prefer the legacy version after you tried the new version, you can simply switch back to the legacy version, but the data fetched by new version may not be removed, you may need unmatch and match them again if you wish to get rid of all data fetched by new version. If you care very much about current metadata in your library, please [backup your database](https://support.plex.tv/articles/201539237-backing-up-plex-media-server-data/) before switching to the new version.
+If you care very much about the current metadata in your library, please [back up your database](https://support.plex.tv/articles/201539237-backing-up-plex-media-server-data/) before switching to the new version.
 
 The new version is completely rewritten, and the codebase does not share any history with the legacy version.
 
@@ -46,13 +47,13 @@ The major new features of v2 version are:
 * Add new sources include `DMM` and `MGStage`
 * Scrape trailers from `DMM` and some studios' official sites
 * Actresses name correction via `seesaawiki`
-* Scrape series data from sources and optionally organize series into collections (disabled by default)
+* Scrape series data from sources and optionally organize series into collections
 * Improve similarity recommendation by telling keywords to plex media server (how plex media server handles these keywords is unknown, the experience may worse for some users)
 
 There are also some minor improvements not mentioned here.
 
 ### Differences between legacy version and v2
-* `FC2` and `AVE` agents are not available for now, I am actively working on adding them back
+* `FC2` and `AVE` agents are not available for now, I am actively working on it.
 * `JAVDB` agent is dropped because it only provides English and Traditional Chinese metadata, which is not consistent with other agents that provide Japanese metadata. If the project further supports multiple languages, I may add it back.
 
 ## Agents
@@ -65,13 +66,13 @@ The plugin consists of multiple sub-agents:
 | MGStage | Yes | 500 | Official site of *Prestige* studio, some videos from *Prestige* are not available in *JAVLibrary* and *DMM*, it can complement the above two agents |
 | Caribbean, Caribpr, 1Pondo, Heyzo, Tokyo-Hot | Yes | 500 | Official sites of uncensored videos |
 | Seesaawiki | Yes | -100 | A wiki site for Japanese adult video actresses, it can correct the actresses' names |
-| GFriends | Yes | -200 | Provide actresses' avatars |
-| Warashi | Yes | -300 | A fall back agent for actresses' avatars |
+| Warashi | Yes | -200 | Provide actresses' avatars |
+| GFriends | Yes | -300 | A fall back agent for actresses' avatars |
 
-You are able to disable some of the agents in the plugin settings.
+You are able to disable some of the agents in the plugin settings, `DMM` and `MGStage` agents are not available in some regions.
 
 ### JAVLibrary
-To use [JAVLibrary](https://javlibrary.com) agent, you have to bypass the *cloudflare* challenge. There are two ways to bypass the challenge, one is using [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr), if you are able to set up a *FlareSolverr* instance, it would be much more convenient. The other is manually filling the `User-Agent` header and `cf_clearance` cookie value everytime in the agent's configuration.
+To use [JAVLibrary](https://javlibrary.com) agent, you have to bypass the *cloudflare* challenge. There are two ways to bypass the challenge, one is using [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr), if you are able to set up a *FlareSolverr* instance, it would be much more convenient. The other is [manually filling](https://github.com/Xavier-Lam/JAV.bundle/blob/legacy/README.md#legacy) the `User-Agent` header and `cf_clearance` cookie value everytime in the agent's configuration.
 
 #### FlareSolverr
 If you've set up a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance, you can fill its URL in the agent's configuration to make the agent bypass the *cloudflare* challenge via *FlareSolverr*. It is the most convenient way to bypass the challenge. If a *FlareSolverr* URL is not provided, the agent will try to access *JAVLibrary* using the legacy way.
@@ -104,4 +105,4 @@ As the development document of plex plugin has been removed, you can check out [
 * The actresses' avatars are provided by [gfriends](https://github.com/xinxin8816/gfriends) project.
 
 ## Donate
-* I am looking for a [m-team](https://kp.m-team.cc) invitation, I'll be very appreciated if someone give me one.
+* I am looking for a [m-team](https://kp.m-team.cc) invitation, I'll be very appreciated if someone gives me one.

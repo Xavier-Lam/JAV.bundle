@@ -1,6 +1,7 @@
 # coding=utf-8
 
-from .base import BaseAgent, MetadataAgent, PartialMetadataAgent, SearchAgent
+from .base import (AccessRestrictedError, BaseAgent, MetadataAgent,
+                   PartialMetadataAgent, SearchAgent)
 from .types import Metadata
 
 from .caribbean import Caribbean  # noqa: E402

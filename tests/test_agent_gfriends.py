@@ -8,6 +8,7 @@ import unittest
 import mock
 
 from agents import GFriends
+from agents.types import Resource
 
 
 class TestGFriendsGetAvatar(BaseTestCase):
@@ -27,6 +28,8 @@ class TestGFriendsGetAvatar(BaseTestCase):
     def test_get_avatar(self):
         for name, expected_url in self.test_cases:
             result = self.agent.get_avatar(name, "ja")
+            self.assertIsInstance(result, Resource)
+            self.assertEqual(result.score, 50)
             self.assertEqual(
                 result,
                 expected_url,
@@ -44,6 +47,12 @@ class TestGFriendsGetAvatar(BaseTestCase):
                 "URL {0!r} does not point to an image for actress {1!r}".format(
                     result, name),
             )
+
+    def test_get_avatar_returns_none_for_unknown_actress(self):
+        self.agent.initialized = True
+        self.agent.resource = {}
+        result = self.agent.get_avatar(u"Unknown Actress", "ja")
+        self.assertIsNone(result)
 
     def test_initialize_failure_leaves_uninitialised(self):
         with mock.patch.object(self.agent.session, 'get', return_value=self.make_mock_response(status_code=500)):

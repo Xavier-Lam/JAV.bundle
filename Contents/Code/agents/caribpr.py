@@ -197,7 +197,7 @@ class CaribbeanPr(SearchAgent, StudioAgent):
     def fetch(self, video_code, lang):
         url = "{0}/moviepages/{1}/index.html".format(BASE_URL, video_code)
         resp = self.session.get(url)
-        resp.raise_for_status()
+        self.raise_for_status(resp)
         return resp.content.decode("euc-jp", errors="ignore")
 
     # ------------------------------------------------------------------

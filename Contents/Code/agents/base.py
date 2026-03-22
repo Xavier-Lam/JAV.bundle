@@ -6,6 +6,10 @@ import flaresolverr_session
 import requests
 
 
+class AccessRestrictedError(Exception):
+    """Raised when a resource cannot be accessed due to access restrictions."""
+
+
 class FlareSolverrSessionCache(object):
     flaresolverr_session = None  # type: flaresolverr_session.Session
     flaresolverr_url = ""
@@ -38,6 +42,22 @@ class BaseAgent(object):
         except Exception:
             return True  # unconfigurable agents are enabled
 
+    def raise_for_status(self, resp):
+        """
+        Raise an appropriate exception for a non-2xx HTTP response.
+
+        Raises:
+            AccessRestrictedError: If the response status code is 403.
+            requests.HTTPError: For any other HTTP error status.
+        """
+        try:
+            resp.raise_for_status()
+        except requests.HTTPError as e:
+            if e.response.status_code == 403:
+                raise AccessRestrictedError(
+                    "Access to %r is restricted" % resp.url)
+            raise
+
     def validate_resource(self, url, expected_mime_type=None):
         """
         Validate that the resource at the given URL has the expected MIME type.
@@ -62,7 +82,7 @@ class BaseAgent(object):
             return False
         return True
 
-    requests_session = None     # type: requests.Session
+    requests_session = None  # type: requests.Session
 
     def create_session(self):
         """
@@ -115,7 +135,7 @@ class BaseAgent(object):
                 url,
                 session_id="com.plexapp.agents.jav",
                 timeout=20000,
-                max_retries=2,
+                max_retries=2
             )
             flaresolverr_session_cache.flaresolverr_url = url
         fss = flaresolverr_session_cache.flaresolverr_session
@@ -298,7 +318,7 @@ class AvatarAgent(PartialMetadataAgent):
 
     def partial_update(self, video_code, metadata, lang):
         for actress in metadata.actresses:
-            if actress.photo:
+            if actress.photo and actress.photo.score >= 50:
                 continue
             try:
                 avatar_url = self.get_avatar(actress, lang)
@@ -313,13 +333,13 @@ class AvatarAgent(PartialMetadataAgent):
 
     def get_avatar(self, actress, lang):
         """
-        Return the avatar URL for the given actress name.
+        Return the avatar resource for the given actress name.
 
         Args:
             actress (str): The actress name.
             lang (str): The language code.
 
         Returns:
-            str or None: The avatar URL, or ``None`` if not found.
+            Resource or None: The avatar resource, or ``None`` if not found.
         """
         raise NotImplementedError

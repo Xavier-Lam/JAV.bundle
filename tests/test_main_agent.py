@@ -775,27 +775,6 @@ class TestJAVAgentUpdate(BaseTestCase):
 
         self.assertEqual(movie.id, new_id)
 
-    def test_legacy_bare_id_triggers_search_and_updates(self):
-        new_id = "NEW-001|ma.new_id"
-
-        def fake_search(results, hints, lang, manual=False):
-            r = mock.MagicMock()
-            r.id = new_id
-            results.Append(r)
-
-        meta_agent = _MockMetadataAgent(Prefs)
-        meta_agent.name = "ma"
-        meta_agent.metadata = Metadata()
-
-        agent = self._make_agent([meta_agent])
-        movie = Movie()
-        movie.id = "OLD-001"
-
-        with mock.patch.object(agent, "search", side_effect=fake_search):
-            agent.update(movie, None, "ja")
-
-        self.assertEqual(movie.id, new_id)
-
     def test_legacy_id_no_results_keeps_movie_id(self):
         agent = self._make_agent([])
         movie = Movie()

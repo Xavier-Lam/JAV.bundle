@@ -7,8 +7,9 @@ import json
 import re
 
 from bs4 import BeautifulSoup
+import requests
 
-from .base import MetadataAgent, SearchAgent
+from .base import AccessRestrictedError, MetadataAgent, SearchAgent
 from .types import Metadata, Person, Resource, SearchItem
 from .utils import get_code_group, guess_video_code
 
@@ -21,6 +22,26 @@ SEARCH_URL = BASE_URL + \
 DETAIL_RE = re.compile(r"/([a-z]+/[a-z]+)/-/detail/=/cid=([^/&?]+)")
 
 
+class DMMSession(requests.Session):
+    available = True
+
+    def request(self, *args, **kwargs):
+        if not self.available:
+            raise AccessRestrictedError(u"DMM is not available in your region.")
+
+        response = super(DMMSession, self).request(*args, **kwargs)
+        # Check for region restriction in the response
+        content = response.content.decode("utf-8", "ignore")
+        if (
+            u"このサービスはお住まいの地域からは" in content or
+            u"Sorry! This content is not available in your region." in content or
+            u"foreignError__desc" in content
+        ):
+            self.available = False
+            raise AccessRestrictedError(u"DMM is not available in your region.")
+        return response
+
+
 class DMM(SearchAgent, MetadataAgent):
     """Agent that scrapes metadata from dmm.co.jp."""
 
@@ -29,7 +50,7 @@ class DMM(SearchAgent, MetadataAgent):
 
     def create_session(self):
         """Return a new session with the DMM age-check cookie pre-set."""
-        s = super(DMM, self).create_session()
+        s = DMMSession()
         s.cookies.set("age_check_done", "1", domain=".dmm.co.jp")
         return s
 
@@ -49,7 +70,7 @@ class DMM(SearchAgent, MetadataAgent):
         target = keyword.replace(u"-", u"").lower()
         url = SEARCH_URL.format(keyword=keyword)
         resp = self.session.get(url)
-        resp.raise_for_status()
+        self.raise_for_status(resp)
         soup = BeautifulSoup(
             resp.content.decode("utf-8", "ignore"), "html.parser")
 
@@ -119,6 +140,9 @@ class DMM(SearchAgent, MetadataAgent):
                 title_text = (og.get("content") or u"").strip()
                 if title_text:
                     metadata.title = u"{0} {1}".format(video_code, title_text)
+        if not metadata.title:
+            raise Exception(
+                u"Title not found for cid={0} html={1}".format(cid, html))
         metadata.japanese_title = metadata.title
         metadata.title_sort = metadata.title
 
@@ -243,7 +267,7 @@ class DMM(SearchAgent, MetadataAgent):
         """
         url = "{0}/{1}/-/detail/=/cid={2}/".format(BASE_URL, pattern, cid)
         resp = self.session.get(url)
-        resp.raise_for_status()
+        self.raise_for_status(resp)
         html = resp.content.decode("utf-8", "ignore")
         if "self.__next_f" in html and "<h1" not in html:
             raise Exception(

@@ -1,0 +1,56 @@
+name: Bug Report
+description: Report a problem with JAV.bundle
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+        > **Important:** Do **NOT** upload explicit content such as screenshots of your library.
+
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      description: The release tag you installed. You can also find it in `__init__.py` file under "Contents/Code" directory.
+      placeholder: "e.g. 2024.01.1"
+    validations:
+      required: true
+
+  - type: input
+    id: video_code
+    attributes:
+      label: Video code
+      description: The video code or search keyword that reproduces the problem.
+      placeholder: "e.g. JBD-226"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: A clear description of the problem.
+    validations:
+      required: true
+
+  - type: upload
+    id: log
+    attributes:
+      label: Log file
+      description: |
+        Attach your Plex log file (or the relevant portion). Located at:
+        `{Plex Media Server data directory}/Logs/PMS Plugin Logs/com.plexapp.agents.jav.log`
+        See [Plex documentation](https://support.plex.tv/articles/202915258-where-is-the-plex-media-server-data-directory-located/) for your data directory location.
+        The log file contains sensitive information such as your library structure and video file paths, if you are concerned about privacy, please review the log file and redact any sensitive information before uploading.
+    validations:
+      required: true
+      accept: ".log,.txt,.zip"
+
+  - type: checkboxes
+    id: content-policy
+    attributes:
+      label: Content policy
+      options:
+        - label: I confirm that I have NOT included any explicit content (e.g. screenshots of my library) in this report.
+          required: true

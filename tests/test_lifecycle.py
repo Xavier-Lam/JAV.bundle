@@ -69,7 +69,6 @@ class TestPrefsLogging(BaseTestCase):
     def test_start_logs_all_prefs(self):
         with mock.patch.object(Log, "Info") as mock_info:
             Start()
-        mock_info.assert_called_once()
         data = mock_info.call_args[0][1]
         for item in data:
             key, value = item

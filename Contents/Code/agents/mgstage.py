@@ -47,7 +47,7 @@ class MGStage(SearchAgent, MetadataAgent):
             SEARCH_URL,
             params={"search_word": keyword, "type": "top"},
         )
-        resp.raise_for_status()
+        self.raise_for_status(resp)
         html = resp.content.decode("utf-8", errors="ignore")
         soup = BeautifulSoup(html, "html.parser")
 
@@ -227,7 +227,7 @@ class MGStage(SearchAgent, MetadataAgent):
     def fetch(self, product_id, lang):
         url = DETAIL_URL.format(product_id=product_id)
         resp = self.session.get(url)
-        resp.raise_for_status()
+        self.raise_for_status(resp)
         return resp.content.decode("utf-8", errors="ignore")
 
     # ------------------------------------------------------------------

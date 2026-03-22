@@ -23,6 +23,9 @@ sys.path.insert(0, CODE_PATH)
 sys.path.insert(0, CONTENTS_PATH)  # for tests to import from Contents/Code
 
 
+from agents.base import AccessRestrictedError
+
+
 for t in [
     "Agent",
     "Locale",
@@ -66,6 +69,21 @@ class BaseTestCase(unittest.TestCase):
 class AgentTestCase(BaseTestCase):
 
     agent = None  # type: BaseAgent
+
+    def run(self, result=None):
+        skip_access_restricted = os.environ.get("SKIP_ACCESS_RESTRICTED_TESTS", "0") == "1"
+        if result is not None:
+            original_add_error = result.addError
+
+            def patched_add_error(test, err):
+                exc_type, exc_value, tb = err
+                if isinstance(exc_value, AccessRestrictedError) and skip_access_restricted:
+                    result.addSkip(test, str(exc_value))
+                else:
+                    original_add_error(test, err)
+
+            result.addError = patched_add_error
+        super(AgentTestCase, self).run(result)
 
     def setUp(self):
         super(AgentTestCase, self).setUp()

@@ -1,8 +1,12 @@
 name: Code Style
 
 on:
+  push:
+    branches: [master, main, develop]
+    paths:
+      - "**/*.py"
   pull_request:
-    branches: [master, main]
+    branches: [master, main, develop]
     paths:
       - "**/*.py"
 
@@ -13,19 +17,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
+      - name: Set up Python 2.7
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python2 python2-dev
+          curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
+          python2 get-pip.py
+          echo "$(python2 -m site --user-base)/bin" >> $GITHUB_PATH
 
       - name: Install autopep8
-        run: pip install autopep8==1.6.0 pycodestyle==2.8.0
+        run: |
+          python2 -m pip install --upgrade pip
+          python2 -m pip install autopep8==1.6.0 pycodestyle==2.8.0
 
       - name: Check formatting
         run: |
-          autopep8 --diff --recursive --aggressive Contents/Code/ > autopep8.diff
+          python2 -m autopep8 --diff --recursive --aggressive --ignore E501 Contents/Code/ > autopep8.diff
           if [ -s autopep8.diff ]; then
-            echo "::error::Code is not formatted. Run autopep8 --in-place --recursive --aggressive Contents/Code/ to fix."
+            echo "::error::Code is not formatted. Run python2 -m autopep8 --in-place --recursive --aggressive --ignore E501 Contents/Code/ to fix."
             cat autopep8.diff
             exit 1
           fi

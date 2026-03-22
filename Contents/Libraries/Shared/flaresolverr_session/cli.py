@@ -108,6 +108,11 @@ def _build_session_parser():
         default=None,
         help="Proxy URL (e.g. http://proxy:8080)",
     )
+    create_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Destroy the original session first if it exists before creating a new one.",
+    )
 
     # session list
     session_sub.add_parser("list", help="List active sessions")
@@ -244,7 +249,16 @@ def _handle_session(rpc, args):
     if action == "create":
         names = getattr(args, "name", None)
         proxy = getattr(args, "proxy", None)
-        return [rpc.session.create(session_id=n, proxy=proxy) for n in names]
+        force = getattr(args, "force", False)
+        results = []
+        for n in names:
+            if force:
+                # Check if session exists
+                session_list = rpc.session.list()
+                if n in session_list.get("sessions", []):
+                    rpc.session.destroy(n)
+            results.append(rpc.session.create(session_id=n, proxy=proxy))
+        return results
     elif action == "list":
         return rpc.session.list()
     elif action == "destroy":

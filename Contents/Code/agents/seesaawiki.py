@@ -45,7 +45,12 @@ class SeesaaWiki(PartialMetadataAgent):
         # Correct each actress name via page-name lookup.
         corrected = []
         for actress in actresses:
-            new_name = self.get_actress_name(actress)
+            try:
+                new_name = self.get_actress_name(actress)
+            except Exception:
+                new_name = actress
+                self.logger.exception(
+                    "Error correcting actress name: %s", actress)
             if new_name and new_name != actress:
                 self.logger.debug("Corrected actress name: %s -> %s",
                                   actress, new_name)
@@ -125,10 +130,7 @@ class SeesaaWiki(PartialMetadataAgent):
         if name in self.cache:
             return self.cache[name]
 
-        try:
-            results = self.search_wiki(name, search_target="page_name")
-        except Exception:
-            return name
+        results = self.search_wiki(name, search_target="page_name")
         if not results:
             self.cache[name] = name
             return name
@@ -160,6 +162,7 @@ class SeesaaWiki(PartialMetadataAgent):
     def fetch_page(self, url):
         """GET *url* and return a ``BeautifulSoup`` parsed with EUC-JP."""
         resp = self.session.get(url)
+        self.raise_for_status(resp)
         resp.encoding = "euc-jp"
         return BeautifulSoup(resp.text, "html.parser")
 

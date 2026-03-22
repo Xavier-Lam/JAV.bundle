@@ -50,10 +50,10 @@ class Session(requests.Session):
             treated as minutes; a :class:`datetime.timedelta` is
             converted to whole minutes.  When *None* (default), no TTL
             is sent.
-        auto_destroy (bool): If *True* (default), the FlareSolverr
-            session will be automatically destroyed when the Session object
-            is closed or garbage collected if any request has been sent
-            through it.
+        disable_media (bool): When *True*, images, CSS and fonts are
+            not loaded by the headless browser, speeding up navigation.
+            Passed to FlareSolverr as ``disable_media``.  Defaults to
+            *False*.
 
     .. note::
 
@@ -76,7 +76,7 @@ class Session(requests.Session):
         rpc=None,
         max_retries=1,
         ttl=None,
-        auto_destroy=True,
+        disable_media=False,
     ):
         super(Session, self).__init__()
 
@@ -101,7 +101,7 @@ class Session(requests.Session):
             self._ttl = int(ttl.total_seconds() // 60)
         else:
             self._ttl = ttl
-        self._auto_destroy = auto_destroy
+        self._disable_media = disable_media
         self._lock = threading.Lock()
         self.proxies = proxy
 
@@ -194,6 +194,10 @@ class Session(requests.Session):
         # Session TTL
         if self._ttl is not None:
             request_kwargs["session_ttl_minutes"] = self._ttl
+
+        # Media blocking
+        if self._disable_media:
+            request_kwargs["disable_media"] = True
 
         return request_kwargs
 
@@ -292,8 +296,7 @@ class Session(requests.Session):
         """Destroy the FlareSolverr session and close the inherited
         ``requests.Session``."""
         try:
-            if self._auto_destroy:
-                self.destroy()
+            self.destroy()
         except Exception as e:
             warnings.warn(
                 "Error destroying FlareSolverr session %s: %s" % (self._session_id, e),

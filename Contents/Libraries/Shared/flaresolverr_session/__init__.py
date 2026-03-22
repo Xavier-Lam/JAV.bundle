@@ -14,7 +14,7 @@ from flaresolverr_session.session import Session, Response
 __title__ = "flaresolverr-session"
 __description__ = "A requests.Session that proxies through a FlareSolverr instance."
 __url__ = "https://github.com/Xavier-Lam/FlareSolverrSession"
-__version__ = "0.3.8"
+__version__ = "0.3.10"
 __author__ = "Xavier-Lam"
 __author_email__ = "xavierlam7@hotmail.com"
 

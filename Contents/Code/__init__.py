@@ -13,7 +13,12 @@ import agents
 from agents import BaseAgent, Metadata, MetadataAgent, PartialMetadataAgent, SearchAgent
 
 
+version = "2026.03.1"
+
+
 def Start():
+    Log.Info("Starting JAV Agent version %s", version)
+
     agents_logger = logging.getLogger("agents")
     if not agents_logger.handlers:
         agents_logger.addHandler(PlexLogHandler())
@@ -117,7 +122,8 @@ class JAVAgent(Agent.Movies):
             results = SearchResultCollection()
             self.search(results, media, lang, manual=False)
             if results:
-                Log.Info("Resolved legacy metadata ID: %s -> %s", movie.id, results[0].id)
+                Log.Info("Resolved legacy metadata ID: %s -> %s",
+                         movie.id, results[0].id)
                 movie.id = results[0].id
             else:
                 Log.Info("Search returned no results for legacy metadata ID: %s",
@@ -191,7 +197,8 @@ class JAVAgent(Agent.Movies):
             similar.add(metadata.code_group)
         movie.title = self.uncensor_text(metadata.title, lang)
         if metadata.japanese_title:
-            movie.original_title = self.uncensor_text(metadata.japanese_title, lang)
+            movie.original_title = self.uncensor_text(
+                metadata.japanese_title, lang)
         if metadata.release_date:
             movie.originally_available_at = metadata.release_date
             movie.year = metadata.release_date.year

@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 
 from .base import SearchAgent, StudioAgent
 from .types import Metadata, Person, Resource, SearchItem
-from .utils import guess_video_code
 
 
 BASE_URL = "https://my.tokyo-hot.com"
@@ -61,7 +60,7 @@ class TokyoHot(SearchAgent, StudioAgent):
         url = "{0}/product/".format(BASE_URL)
         params = {"q": video_code}
         resp = self.session.get(url, params=params)
-        resp.raise_for_status()
+        self.raise_for_status(resp)
         html = resp.content.decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
 
@@ -223,7 +222,7 @@ class TokyoHot(SearchAgent, StudioAgent):
     def fetch(self, agent_id, lang):
         url = "{0}/product/{1}/".format(BASE_URL, agent_id)
         resp = self.session.get(url)
-        resp.raise_for_status()
+        self.raise_for_status(resp)
         return resp.content.decode("utf-8")
 
     # ------------------------------------------------------------------

@@ -3,7 +3,7 @@
         "id": "series_as_collection",
         "label": "Create collections from series",
         "type": "bool",
-        "default": false
+        "default": true
     },
     {
         "id": "proxy",

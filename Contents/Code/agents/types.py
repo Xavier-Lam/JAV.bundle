@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class Person(unicode):
-    photo = None  # type: str
+    photo = None  # type: Resource
     japanese_name = None  # type: str
 
 

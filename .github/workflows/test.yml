@@ -2,11 +2,11 @@ name: Unit Tests
 
 on:
   push:
-    branches: [master, main]
+    branches: [master, main, develop]
     paths:
       - "**/*.py"
   pull_request:
-    branches: [master, main]
+    branches: [master, main, develop]
     paths:
       - "**/*.py"
 
@@ -44,5 +44,13 @@ jobs:
       - name: Run tests
         env:
           FLARESOLVERR_URL: http://localhost:8191/v1
+          SKIP_ACCESS_RESTRICTED_TESTS: "1"
         run: |
-          python2 -m unittest discover -s tests -p "test_*.py" -v
+          python2 -m coverage run -m unittest discover -s tests -p "test_*.py" -v
+          python2 -m coverage xml
+
+      - name: Upload coverage to Codecov
+        if: ${{ github.ref != 'refs/heads/develop' }}
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml

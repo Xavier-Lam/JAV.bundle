@@ -5,6 +5,7 @@ from urllib import quote
 from urlparse import urlparse
 
 from .base import AvatarAgent
+from .types import Resource
 
 
 GITHUB_TEMPLATE = 'https://raw.githubusercontent.com/xinxin8816/gfriends/master/{}/{}/{}'
@@ -13,7 +14,7 @@ FILETREE_URL = 'https://raw.githubusercontent.com/xinxin8816/gfriends/master/Fil
 
 class GFriends(AvatarAgent):
     name = "Gfriends"
-    weight = -200
+    weight = -300
 
     def __init__(self, *args, **kwargs):
         super(GFriends, self).__init__(*args, **kwargs)
@@ -24,7 +25,10 @@ class GFriends(AvatarAgent):
     def get_avatar(self, actress, lang):
         if not self.initialized:
             self.initialize()
-        return self.resource.get(actress)
+        url = self.resource.get(actress)
+        if url is not None:
+            url = Resource(url)
+        return url
 
     def initialize(self):
         with self.lock:

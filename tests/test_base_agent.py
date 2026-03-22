@@ -256,7 +256,10 @@ class _StubAvatarAgent(AvatarAgent):
     avatars = {}  # type: dict
 
     def get_avatar(self, actress, lang):
-        return self.avatars.get(str(actress))
+        url = self.avatars.get(str(actress))
+        if url:
+            url = Resource(url)
+        return url
 
 
 class TestAvatarAgentPartialUpdate(BaseTestCase):
@@ -278,18 +281,51 @@ class TestAvatarAgentPartialUpdate(BaseTestCase):
         agent.partial_update("CODE-1", meta, "ja")
 
         self.assertEqual(actress.photo, "http://avatar/a.jpg")
+        self.assertIsInstance(actress.photo, Resource)
+        self.assertEqual(actress.photo.score, 50)
 
-    def test_skips_actress_with_existing_photo(self):
+    def test_skips_actress_when_photo_score_is_high(self):
         agent = _StubAvatarAgent(Prefs)
         agent.avatars = {"Actress A": "http://avatar/new.jpg"}
 
-        actress = self._make_person("Actress A", photo="http://avatar/old.jpg")
+        old_photo = Resource("http://avatar/old.jpg")
+        old_photo.score = 80
+        actress = self._make_person("Actress A", photo=old_photo)
         meta = Metadata()
         meta.actresses = [actress]
 
         agent.partial_update("CODE-1", meta, "ja")
 
         self.assertEqual(actress.photo, "http://avatar/old.jpg")
+        self.assertEqual(actress.photo.score, 80)
+
+    def test_skips_actress_when_photo_score_at_threshold(self):
+        agent = _StubAvatarAgent(Prefs)
+        agent.avatars = {"Actress A": "http://avatar/new.jpg"}
+
+        old_photo = Resource("http://avatar/old.jpg")
+        old_photo.score = 50
+        actress = self._make_person("Actress A", photo=old_photo)
+        meta = Metadata()
+        meta.actresses = [actress]
+
+        agent.partial_update("CODE-1", meta, "ja")
+
+        self.assertEqual(actress.photo, "http://avatar/old.jpg")
+
+    def test_overwrites_photo_with_low_score(self):
+        agent = _StubAvatarAgent(Prefs)
+        agent.avatars = {"Actress A": "http://avatar/new.jpg"}
+
+        old_photo = Resource("http://avatar/old.jpg")
+        old_photo.score = 20
+        actress = self._make_person("Actress A", photo=old_photo)
+        meta = Metadata()
+        meta.actresses = [actress]
+
+        agent.partial_update("CODE-1", meta, "ja")
+
+        self.assertEqual(actress.photo, "http://avatar/new.jpg")
 
     def test_skips_actress_with_no_match(self):
         agent = _StubAvatarAgent(Prefs)
